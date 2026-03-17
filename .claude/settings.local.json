@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd:*)",
+      "Bash(mkdir:*)",
+      "mcp__claude_ai_Figma__get_metadata",
+      "Bash(cat:*)",
+      "Bash(ls:*)"
+    ]
+  }
+}

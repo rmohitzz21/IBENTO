@@ -1,0 +1,15 @@
+import api from './api'
+
+export const getVendors = (params) => api.get('/vendors', { params })
+export const getTrendingVendors = (city) => api.get('/vendors/trending', { params: { city } })
+export const getVendor = (id) => api.get(`/vendors/${id}`)
+export const getVendorServices = (id) => api.get(`/vendors/${id}/services`)
+export const getVendorReviews = (id) => api.get(`/vendors/${id}/reviews`)
+export const applyAsVendor = (data) => api.post('/vendors/apply', data)
+export const getVendorDashboard = () => api.get('/vendors/dashboard')
+export const updateVendorProfile = (data) => api.put('/vendors/profile', data)
+export const getVendorBookings = (params) => api.get('/vendors/bookings', { params })
+export const getVendorEarnings = () => api.get('/vendors/earnings')
+export const updateAvailability = (data) => api.put('/vendors/availability', data)
+export const toggleWishlist = (vendorId) => api.post(`/users/wishlist/${vendorId}`)
+export const getWishlist = () => api.get('/users/wishlist')

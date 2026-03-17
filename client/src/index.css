@@ -1,0 +1,151 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,400&family=Inter:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Filson Pro - must be self-hosted or use a substitute */
+@layer base {
+  :root {
+    --orange: #F06138;
+    --orange-dark: #F54900;
+    --orange-light: #FFF3EF;
+    --brown: #8B4332;
+    --brown-dark: #870D0D;
+    --brown-footer: #8A4432;
+    --cream-page: #FFFDFC;
+    --cream-form: #FEFDEB;
+    --cream-input: #FFFEED;
+    --cream-card: #FFFEF5;
+    --cream-yellow: #FDFAD6;
+    --cream-alt: #FFF9F8;
+    --text-dark: #101828;
+    --text-body: #364153;
+    --text-mid: #4C4C4C;
+    --text-light: #6A7282;
+    --text-muted: #6A6A6A;
+    --text-vendor: #424242;
+    --text-price: #8B4332;
+    --border-card: rgba(0,0,0,0.2);
+    --border-input: rgba(139,67,50,0.2);
+    --border-table: rgba(0,0,0,0.1);
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'Lato', sans-serif;
+    color: var(--text-body);
+    background-color: var(--cream-page);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Filson Pro fallback - use a serif font */
+  .font-filson {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer components {
+  /* Skeleton shimmer */
+  .skeleton {
+    @apply bg-gray-200 rounded;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200px 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  /* Orange gradient button */
+  .btn-primary {
+    @apply bg-orange text-cream-yellow font-filson text-sm font-medium px-6 py-3 rounded transition-all duration-200;
+    @apply hover:bg-orange-dark active:scale-95;
+  }
+
+  .btn-outline {
+    @apply border border-orange text-orange font-filson text-sm font-medium px-6 py-3 rounded transition-all duration-200;
+    @apply hover:bg-orange hover:text-cream-yellow;
+  }
+
+  /* Input styling */
+  .input-field {
+    @apply w-full bg-cream-input border rounded px-4 py-3 text-text-dark placeholder:text-text-muted;
+    @apply focus:outline-none focus:ring-2 focus:border-orange;
+    @apply transition-all duration-200;
+    border-color: var(--border-input);
+  }
+
+  /* Card base */
+  .card {
+    @apply bg-cream-card rounded-md;
+    border: 0.5px solid var(--border-card);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+
+  /* Status badges */
+  .badge-confirmed {
+    @apply text-xs font-medium px-2 py-1 rounded;
+    background: #DBEAFE; color: #193CB8;
+  }
+  .badge-pending {
+    @apply text-xs font-medium px-2 py-1 rounded;
+    background: #FEF9C2; color: #894B00;
+    animation: pulseBadge 2s ease-in-out infinite;
+  }
+  .badge-completed {
+    @apply text-xs font-medium px-2 py-1 rounded;
+    background: #DCFCE7; color: #016630;
+  }
+  .badge-rejected {
+    @apply text-xs font-medium px-2 py-1 rounded;
+    background: #FFE2E2; color: #9F0712;
+  }
+  .badge-cancelled {
+    @apply text-xs font-medium px-2 py-1 rounded;
+    background: #FFE2E2; color: #9F0712;
+  }
+  .badge-deposit {
+    @apply text-xs font-medium px-2 py-1 rounded;
+    background: #FFEDD4; color: #9F2D00;
+  }
+  .badge-paid {
+    @apply text-xs font-medium px-2 py-1 rounded;
+    background: #DCFCE7; color: #016630;
+  }
+
+  /* Page top loading bar */
+  .top-loading-bar {
+    @apply fixed top-0 left-0 h-0.5 bg-orange z-50;
+    animation: progress 2s ease-in-out;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-gray-300 rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-gray-400; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+
+@keyframes pulseBadge {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+@keyframes progress {
+  0% { width: 0%; }
+  50% { width: 70%; }
+  100% { width: 100%; }
+}
