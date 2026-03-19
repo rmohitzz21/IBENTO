@@ -17,17 +17,15 @@ import { useAuthStore } from '../../stores/authStore'
 import { useNotificationStore } from '../../stores/notificationStore'
 
 const NAV_ITEMS = [
-  { label: 'Dashboard', icon: LayoutDashboard, to: '/vendor/dashboard' },
-  { label: 'Services', icon: Wrench, to: '/vendor/services' },
-  { label: 'Bookings', icon: CalendarCheck, to: '/vendor/bookings' },
-  { label: 'Leads', icon: Users, to: '/vendor/leads' },
-  { label: 'Portfolio', icon: Images, to: '/vendor/portfolio' },
-  { label: 'Messages', icon: MessageSquare, to: '/vendor/messages', badge: true },
-  { label: 'Calendar', icon: Calendar, to: '/vendor/calendar' },
-  { label: 'Earnings', icon: DollarSign, to: '/vendor/earnings' },
-  { label: 'Reviews', icon: Star, to: '/vendor/reviews' },
-  { label: 'Analytics', icon: BarChart2, to: '/vendor/analytics' },
-  { label: 'Settings', icon: Settings, to: '/vendor/settings' },
+  { label: 'Dashboard',     icon: LayoutDashboard, to: '/vendor/dashboard' },
+  { label: 'Services',      icon: Wrench,          to: '/vendor/services' },
+  { label: 'Bookings',      icon: CalendarCheck,   to: '/vendor/bookings' },
+  { label: 'Messages',      icon: MessageSquare,   to: '/vendor/chat', badge: true },
+  { label: 'Availability',  icon: Calendar,        to: '/vendor/availability' },
+  { label: 'Earnings',      icon: DollarSign,      to: '/vendor/earnings' },
+  { label: 'Reviews',       icon: Star,            to: '/vendor/reviews' },
+  { label: 'Profile',       icon: Settings,        to: '/vendor/profile' },
+  { label: 'Notifications', icon: BarChart2,       to: '/vendor/notifications' },
 ]
 
 /**
@@ -146,7 +144,7 @@ export default function VendorSidebar({ profileProgress = 60, className = '' }) 
 
         {/* Complete profile link */}
         <Link
-          to="/vendor/settings"
+          to="/vendor/profile"
           className="text-xs font-semibold text-orange hover:underline transition-colors"
         >
           Complete Profile →

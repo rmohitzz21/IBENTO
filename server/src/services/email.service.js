@@ -45,7 +45,7 @@ const baseTemplate = (content) => `
     <div class="body">${content}</div>
     <div class="footer">
       &copy; ${new Date().getFullYear()} iBento. All rights reserved.<br/>
-      <a href="https://ibento.in">ibento.in</a> &bull; <a href="mailto:support@ibento.in">support@ibento.in</a>
+      <a href="https://ibento.in">ibento.in</a> &bull; <a href="mailto:rmohittt21@gmail.com">support@ibento.in</a>
     </div>
   </div>
 </body>
@@ -60,6 +60,11 @@ const purposeLabels = {
 }
 
 export const sendOTPEmail = async (email, otp, purpose) => {
+  // Always log OTP in development so you can test without real SMTP
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`\n📧 OTP for ${email} [${purpose}]: \x1b[33m${otp}\x1b[0m\n`)
+  }
+
   try {
     const label = purposeLabels[purpose] || 'Verification'
     const content = `
@@ -79,8 +84,8 @@ export const sendOTPEmail = async (email, otp, purpose) => {
       html: baseTemplate(content),
     })
   } catch (error) {
-    console.error('sendOTPEmail error:', error.message)
-    throw error
+    // Don't crash registration/login if email fails — OTP is still saved in DB
+    console.error('sendOTPEmail failed (non-fatal):', error.message)
   }
 }
 
@@ -108,8 +113,7 @@ export const sendBookingConfirmation = async (email, booking) => {
       html: baseTemplate(content),
     })
   } catch (error) {
-    console.error('sendBookingConfirmation error:', error.message)
-    throw error
+    console.error('sendBookingConfirmation error (non-fatal):', error.message)
   }
 }
 
@@ -136,8 +140,7 @@ export const sendVendorApproval = async (email, vendorName) => {
       html: baseTemplate(content),
     })
   } catch (error) {
-    console.error('sendVendorApproval error:', error.message)
-    throw error
+    console.error('sendVendorApproval error (non-fatal):', error.message)
   }
 }
 
@@ -159,8 +162,7 @@ export const sendVendorRejection = async (email, vendorName, reason) => {
       html: baseTemplate(content),
     })
   } catch (error) {
-    console.error('sendVendorRejection error:', error.message)
-    throw error
+    console.error('sendVendorRejection error (non-fatal):', error.message)
   }
 }
 
@@ -190,7 +192,6 @@ export const sendWithdrawalUpdate = async (email, amount, status) => {
       html: baseTemplate(content),
     })
   } catch (error) {
-    console.error('sendWithdrawalUpdate error:', error.message)
-    throw error
+    console.error('sendWithdrawalUpdate error (non-fatal):', error.message)
   }
 }

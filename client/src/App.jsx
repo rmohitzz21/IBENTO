@@ -128,6 +128,7 @@ function AnimatedRoutes() {
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/browse" element={<BrowsePage />} />
         <Route path="/vendors/:id" element={<VendorDetail />} />
+        <Route path="/for-customers" element={<UserLanding />} />
 
         {/* ── Auth ────────────────────────────────────────────── */}
         <Route path="/login" element={<Login />} />
@@ -374,6 +375,13 @@ function AnimatedRoutes() {
             </ProtectedRoute>
           }
         />
+
+        {/* ── Navbar link redirects (no dedicated page yet) ─── */}
+        <Route path="/cart" element={<Navigate to="/wishlist" replace />} />
+        <Route path="/offers" element={<Navigate to="/explore" replace />} />
+        <Route path="/services" element={<Navigate to="/explore" replace />} />
+        <Route path="/create-event" element={<Navigate to="/vendor/apply" replace />} />
+        <Route path="/settings" element={<Navigate to="/profile" replace />} />
 
         {/* ── 404 fallback ────────────────────────────────────── */}
         <Route path="*" element={<Navigate to="/" replace />} />

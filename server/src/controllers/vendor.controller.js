@@ -3,6 +3,7 @@ import Service from '../models/Service.js'
 import Booking from '../models/Booking.js'
 import Review from '../models/Review.js'
 import User from '../models/User.js'
+import Category from '../models/Category.js'
 import { sendVendorApproval } from '../services/email.service.js'
 import cloudinary from '../config/cloudinary.js'
 
@@ -117,7 +118,7 @@ export const getTrendingVendors = async (req, res) => {
         as: 'category',
       },
     },
-    { $unwind: { path: '$category', preserveNullAndEmpty: true } },
+    { $unwind: { path: '$category', preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
         from: 'users',
@@ -127,7 +128,7 @@ export const getTrendingVendors = async (req, res) => {
         pipeline: [{ $project: { name: 1, avatar: 1 } }],
       },
     },
-    { $unwind: { path: '$userId', preserveNullAndEmpty: true } },
+    { $unwind: { path: '$userId', preserveNullAndEmptyArrays: true } },
   ])
 
   res.json({ success: true, vendors })
@@ -184,25 +185,48 @@ export const applyAsVendor = async (req, res) => {
   }
 
   const {
-    businessName, category, description, city, state,
+    businessName, category: categoryName, description, city, state,
     pan, aadhaar, gst, website, yearsInBusiness, teamSize,
     socialLinks, bankAccount,
   } = req.body
 
+  // Resolve category name string → ObjectId (form sends name, schema stores ObjectId)
+  let categoryId = null
+  if (categoryName) {
+    const cat = await Category.findOne({ name: new RegExp(`^${categoryName}$`, 'i') })
+    categoryId = cat?._id || null
+  }
+
   const vendor = await Vendor.create({
     userId: req.user._id,
-    businessName, category, description, city, state,
+    businessName,
+    category: categoryId,
+    description, city, state,
     pan, aadhaar, gst, website, yearsInBusiness, teamSize,
     socialLinks, bankAccount,
     status: 'pending',
   })
 
-  await User.findByIdAndUpdate(req.user._id, { role: 'vendor' })
+  // Update role and re-issue access token so the client's JWT reflects role: 'vendor'
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user._id,
+    { role: 'vendor' },
+    { new: true }
+  )
+  const { accessToken } = updatedUser.generateTokens()
 
   res.status(201).json({
     success: true,
     message: 'Vendor application submitted. We will review it within 2-3 business days.',
     vendor,
+    accessToken,
+    user: {
+      id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      avatar: updatedUser.avatar,
+    },
   })
 }
 

@@ -6,8 +6,8 @@ import { Menu, X } from 'lucide-react'
 const NAV_LINKS = [
   { label: 'Home', to: '/' },
   { label: 'About Us', to: '/about' },
-  { label: 'Services', to: '/services' },
-  { label: 'Packages', to: '/packages' },
+  { label: 'Browse', to: '/browse' },
+  { label: 'For Customers', to: '/for-customers' },
   { label: 'Contact', to: '/contact' },
 ]
 
@@ -67,13 +67,13 @@ export default function Navbar() {
         {/* CTA buttons */}
         <div className="hidden md:flex items-center gap-3 ml-auto">
           <Link
-            to="/vendor"
+            to="/vendor/apply"
             className="px-5 py-2 rounded-lg text-sm font-semibold border border-orange text-orange hover:bg-orange-light transition-colors"
           >
             Join as Vendor
           </Link>
           <Link
-            to="/sign-in"
+            to="/login"
             className="px-5 py-2 rounded-lg text-sm font-semibold text-white transition-colors hover:opacity-90"
             style={{ background: '#F06138' }}
           >
@@ -156,14 +156,14 @@ export default function Navbar() {
               {/* CTA buttons */}
               <div className="px-6 pb-8 space-y-3">
                 <Link
-                  to="/vendor"
+                  to="/vendor/apply"
                   onClick={() => setMobileOpen(false)}
                   className="block w-full py-3 rounded-lg text-sm font-semibold text-center border border-orange text-orange hover:bg-orange-light transition-colors"
                 >
                   Join as Vendor
                 </Link>
                 <Link
-                  to="/sign-in"
+                  to="/login"
                   onClick={() => setMobileOpen(false)}
                   className="block w-full py-3 rounded-lg text-sm font-semibold text-center text-white transition-colors hover:opacity-90"
                   style={{ background: '#F06138' }}

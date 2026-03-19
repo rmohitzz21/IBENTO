@@ -2,7 +2,6 @@ import crypto from 'crypto'
 import Booking from '../models/Booking.js'
 import Service from '../models/Service.js'
 import Vendor from '../models/Vendor.js'
-import razorpay from '../config/razorpay.js'
 import { sendBookingConfirmation } from '../services/email.service.js'
 import Notification from '../models/Notification.js'
 
@@ -25,12 +24,13 @@ export const createBooking = async (req, res) => {
 
   // Check date availability
   const eDate = new Date(eventDate)
+  const minDays = service.minBookingDays || 1
   const minDate = new Date()
-  minDate.setDate(minDate.getDate() + (service.minBookingDays || 7))
+  minDate.setDate(minDate.getDate() + minDays)
   if (eDate < minDate) {
     return res.status(400).json({
       success: false,
-      message: `Booking must be at least ${service.minBookingDays || 7} days in advance`,
+      message: `Booking must be at least ${minDays} day(s) in advance`,
     })
   }
 
@@ -47,18 +47,12 @@ export const createBooking = async (req, res) => {
   // Calculate amounts
   const addOnTotal = addOns.reduce((sum, a) => sum + (a.price || 0), 0)
   const totalAmount = service.price + addOnTotal
-  const advanceAmount = Math.round((totalAmount * service.minAdvancePercent) / 100)
-  const platformFee = Math.round(totalAmount * 0.05) // 5% platform fee
+  const advancePercent = service.minAdvancePercent || 30
+  const advanceAmount = Math.round((totalAmount * advancePercent) / 100)
+  const platformFee = Math.round(totalAmount * 0.05)
   const netVendorAmount = totalAmount - platformFee
 
-  // Create Razorpay order
-  const order = await razorpay.orders.create({
-    amount: advanceAmount * 100, // paise
-    currency: 'INR',
-    receipt: `receipt_${Date.now()}`,
-    notes: { serviceId, userId: req.user._id.toString() },
-  })
-
+  // Create booking — Razorpay order is created separately at payment time
   const booking = await Booking.create({
     userId: req.user._id,
     vendorId: vendor._id,
@@ -75,19 +69,12 @@ export const createBooking = async (req, res) => {
     platformFee,
     netVendorAmount,
     couponCode,
-    razorpayOrderId: order.id,
   })
 
   res.status(201).json({
     success: true,
-    message: 'Booking created. Complete payment to confirm.',
+    message: 'Booking request sent. Vendor will confirm within 24 hours.',
     booking,
-    order: {
-      id: order.id,
-      amount: order.amount,
-      currency: order.currency,
-      key: process.env.RAZORPAY_KEY_ID,
-    },
   })
 }
 

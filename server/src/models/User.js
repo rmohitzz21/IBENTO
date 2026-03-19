@@ -27,7 +27,6 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: [true, 'Password is required'],
       minlength: [8, 'Password must be at least 8 characters'],
       select: false,
     },
@@ -88,11 +87,10 @@ userSchema.virtual('fullName').get(function () {
   return this.name
 })
 
-// Pre-save hook: hash password if modified
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next()
+// Pre-save hook: hash password if modified (admin only)
+userSchema.pre('save', async function () {
+  if (!this.password || !this.isModified('password')) return
   this.password = await bcrypt.hash(this.password, 12)
-  next()
 })
 
 // Instance method: compare password

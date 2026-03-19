@@ -72,13 +72,12 @@ const bookingSchema = new mongoose.Schema(
 )
 
 // Pre-save: generate bookingNumber for new documents
-bookingSchema.pre('save', async function (next) {
-  if (!this.isNew || this.bookingNumber) return next()
+bookingSchema.pre('save', async function () {
+  if (!this.isNew || this.bookingNumber) return
   const year = new Date().getFullYear()
   const count = await mongoose.model('Booking').countDocuments()
   const padded = String(count + 1).padStart(5, '0')
   this.bookingNumber = `IBK-${year}-${padded}`
-  next()
 })
 
 bookingSchema.index({ userId: 1, createdAt: -1 })

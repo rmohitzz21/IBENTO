@@ -13,14 +13,14 @@ const COOKIE_OPTIONS = {
 
 // POST /api/auth/register
 export const register = async (req, res) => {
-  const { name, email, password, phone } = req.body
+  const { name, email, phone, role } = req.body
 
   const existing = await User.findOne({ email })
   if (existing) {
     return res.status(409).json({ success: false, message: 'Email already registered' })
   }
 
-  const user = await User.create({ name, email, password, phone })
+  const user = await User.create({ name, email, phone, role })
 
   const otp = await saveOTP(email, 'register')
   await sendOTPEmail(email, otp, 'register')
@@ -44,6 +44,7 @@ export const verifyOtp = async (req, res) => {
   if (purpose === 'register') {
     user.isVerified = true
   }
+  // 'login' purpose: just issue tokens, no extra flag needed
 
   const { accessToken, refreshToken } = user.generateTokens()
   const hashed = await bcrypt.hash(refreshToken, 10)
@@ -72,44 +73,48 @@ export const login = async (req, res) => {
   const { email, password } = req.body
 
   const user = await User.findOne({ email }).select('+password +refreshToken')
-  if (!user) return res.status(401).json({ success: false, message: 'Invalid email or password' })
-
-  const isMatch = await user.comparePassword(password)
-  if (!isMatch) return res.status(401).json({ success: false, message: 'Invalid email or password' })
-
-  if (!user.isVerified) {
-    const otp = await saveOTP(email, 'register')
-    await sendOTPEmail(email, otp, 'register')
-    return res.status(403).json({
-      success: false,
-      message: 'Email not verified. A new OTP has been sent to your email.',
-      requiresVerification: true,
-    })
-  }
+  if (!user) return res.status(401).json({ success: false, message: 'No account found with this email' })
 
   if (user.isBlocked) return res.status(403).json({ success: false, message: 'Account suspended' })
 
-  const { accessToken, refreshToken } = user.generateTokens()
-  const hashed = await bcrypt.hash(refreshToken, 10)
-  user.refreshToken = hashed
-  await user.save()
+  // Admin: password-based login
+  if (user.role === 'admin') {
+    if (!password) {
+      return res.json({ success: true, requiresPassword: true })
+    }
+    const isMatch = await user.comparePassword(password)
+    if (!isMatch) return res.status(401).json({ success: false, message: 'Invalid email or password' })
 
-  res.cookie('refreshToken', refreshToken, COOKIE_OPTIONS)
+    const { accessToken, refreshToken } = user.generateTokens()
+    const hashed = await bcrypt.hash(refreshToken, 10)
+    user.refreshToken = hashed
+    await user.save()
+    res.cookie('refreshToken', refreshToken, COOKIE_OPTIONS)
+    return res.json({
+      success: true,
+      message: 'Login successful',
+      accessToken,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        avatar: user.avatar,
+        city: user.city,
+        isVerified: user.isVerified,
+      },
+    })
+  }
 
-  res.json({
+  // Non-admin: OTP-based login
+  const otp = await saveOTP(email, 'login')
+  await sendOTPEmail(email, otp, 'login')
+  return res.json({
     success: true,
-    message: 'Login successful',
-    accessToken,
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      phone: user.phone,
-      role: user.role,
-      avatar: user.avatar,
-      city: user.city,
-      isVerified: user.isVerified,
-    },
+    message: 'OTP sent to your email. Please verify to continue.',
+    requiresOTP: true,
+    role: user.role,
   })
 }
 

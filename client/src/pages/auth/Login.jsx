@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -10,9 +10,13 @@ import toast from 'react-hot-toast'
 import { login } from '../../services/auth'
 import { useAuthStore } from '../../stores/authStore'
 
-const loginSchema = z.object({
+const emailSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+})
+
+const passwordSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1, 'Password is required'),
 })
 
 const cardVariants = {
@@ -35,7 +39,10 @@ const GoogleIcon = () => (
 
 export default function Login() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { setUser, setToken } = useAuthStore()
+  const [step, setStep] = useState('email') // 'email' | 'password'
+  const [emailValue, setEmailValue] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [shake, setShake] = useState(false)
 
@@ -44,11 +51,25 @@ export default function Login() {
     handleSubmit,
     formState: { errors },
     setError,
-  } = useForm({ resolver: zodResolver(loginSchema) })
+  } = useForm({
+    resolver: zodResolver(step === 'email' ? emailSchema : passwordSchema),
+    defaultValues: { email: emailValue },
+  })
 
   const mutation = useMutation({
     mutationFn: (data) => login(data),
     onSuccess: ({ data }) => {
+      // Non-admin: server sent OTP
+      if (data.requiresOTP) {
+        navigate('/verify-otp', { state: { email: emailValue, purpose: 'login', role: data.role, from: location.state?.from } })
+        return
+      }
+      // Admin step 1: password required
+      if (data.requiresPassword) {
+        setStep('password')
+        return
+      }
+      // Admin step 2: full login success
       const { user, accessToken } = data
       setUser(user)
       setToken(accessToken)
@@ -66,7 +87,14 @@ export default function Login() {
     },
   })
 
-  const onSubmit = (data) => mutation.mutate(data)
+  const onSubmit = (data) => {
+    if (step === 'email') {
+      setEmailValue(data.email)
+      mutation.mutate({ email: data.email })
+    } else {
+      mutation.mutate({ email: emailValue, password: data.password })
+    }
+  }
 
   return (
     <div className="min-h-screen flex" style={{ background: '#FFFDFC' }}>
@@ -116,7 +144,7 @@ export default function Login() {
             Sign In
           </h1>
           <p className="text-center mb-8 font-lato" style={{ fontSize: 16, color: '#6A6A6A' }}>
-            Welcome back! Please sign in to continue.
+            {step === 'email' ? 'Welcome back! Enter your email to continue.' : 'Enter your password to sign in.'}
           </p>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
@@ -125,73 +153,97 @@ export default function Login() {
               <label className="block text-sm font-medium mb-1.5" style={{ color: '#364153', fontFamily: 'Lato, sans-serif' }}>
                 Email Address
               </label>
-              <input
-                type="email"
-                placeholder="you@example.com"
-                autoComplete="email"
-                className="input-field"
-                style={errors.email ? { borderColor: '#EF4444' } : {}}
-                {...register('email')}
-              />
-              <AnimatePresence>
-                {errors.email && (
-                  <motion.p
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    className="mt-1 text-xs text-red-500"
+              {step === 'email' ? (
+                <>
+                  <input
+                    type="email"
+                    placeholder="you@example.com"
+                    autoComplete="email"
+                    className="input-field"
+                    style={errors.email ? { borderColor: '#EF4444' } : {}}
+                    {...register('email')}
+                  />
+                  <AnimatePresence>
+                    {errors.email && (
+                      <motion.p
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        className="mt-1 text-xs text-red-500"
+                      >
+                        {errors.email.message}
+                      </motion.p>
+                    )}
+                  </AnimatePresence>
+                </>
+              ) : (
+                <div
+                  className="input-field flex items-center cursor-default"
+                  style={{ background: '#f5f0eb', color: '#6A6A6A' }}
+                >
+                  {emailValue}
+                  <button
+                    type="button"
+                    onClick={() => setStep('email')}
+                    className="ml-auto text-xs font-semibold"
+                    style={{ color: '#F06138' }}
                   >
-                    {errors.email.message}
-                  </motion.p>
-                )}
-              </AnimatePresence>
+                    Change
+                  </button>
+                </div>
+              )}
             </div>
 
-            {/* Password */}
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-sm font-medium" style={{ color: '#364153', fontFamily: 'Lato, sans-serif' }}>
-                  Password
-                </label>
-                <Link
-                  to="/forgot-password"
-                  className="text-sm font-medium transition-colors hover:underline"
-                  style={{ color: '#F06138', fontFamily: 'Lato, sans-serif' }}
+            {/* Password (admin only, step 2) */}
+            <AnimatePresence>
+              {step === 'password' && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
                 >
-                  Forgot Password?
-                </Link>
-              </div>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
-                  autoComplete="current-password"
-                  className="input-field pr-11"
-                  style={errors.password ? { borderColor: '#EF4444' } : {}}
-                  {...register('password')}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((p) => !p)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                  tabIndex={-1}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-              <AnimatePresence>
-                {errors.password && (
-                  <motion.p
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    className="mt-1 text-xs text-red-500"
-                  >
-                    {errors.password.message}
-                  </motion.p>
-                )}
-              </AnimatePresence>
-            </div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-sm font-medium" style={{ color: '#364153', fontFamily: 'Lato, sans-serif' }}>
+                      Password
+                    </label>
+                    <Link
+                      to="/forgot-password"
+                      className="text-sm font-medium transition-colors hover:underline"
+                      style={{ color: '#F06138', fontFamily: 'Lato, sans-serif' }}
+                    >
+                      Forgot Password?
+                    </Link>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      autoComplete="current-password"
+                      className="input-field pr-11"
+                      style={errors.password ? { borderColor: '#EF4444' } : {}}
+                      {...register('password')}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((p) => !p)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      tabIndex={-1}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                  {errors.password && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-1 text-xs text-red-500"
+                    >
+                      {errors.password.message}
+                    </motion.p>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Root error */}
             <AnimatePresence>
@@ -228,10 +280,10 @@ export default function Login() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                   </svg>
-                  Signing In...
+                  {step === 'email' ? 'Sending OTP...' : 'Signing In...'}
                 </>
               ) : (
-                'Sign In'
+                step === 'email' ? 'Continue' : 'Sign In'
               )}
             </motion.button>
           </form>

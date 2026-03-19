@@ -1,3 +1,4 @@
+import mongoose from 'mongoose'
 import Review from '../models/Review.js'
 import Booking from '../models/Booking.js'
 import Vendor from '../models/Vendor.js'
@@ -69,7 +70,7 @@ export const getVendorReviews = async (req, res) => {
       .limit(limit),
     Review.countDocuments({ vendorId: req.params.vendorId, isVisible: true }),
     Review.aggregate([
-      { $match: { vendorId: req.params.vendorId, isVisible: true } }, // Note: needs ObjectId cast in real use
+      { $match: { vendorId: new mongoose.Types.ObjectId(req.params.vendorId), isVisible: true } },
       {
         $group: {
           _id: null,

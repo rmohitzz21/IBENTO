@@ -13,8 +13,9 @@ export const getDashboard = async (req, res) => {
     totalUsers,
     totalVendors,
     totalBookings,
-    pendingVendors,
+    pendingVendorsCount,
     pendingWithdrawals,
+    pendingVendorList,
     recentBookings,
     revenueData,
   ] = await Promise.all([
@@ -23,6 +24,12 @@ export const getDashboard = async (req, res) => {
     Booking.countDocuments(),
     Vendor.countDocuments({ status: 'pending' }),
     Withdrawal.countDocuments({ status: 'pending' }),
+    Vendor.find({ status: 'pending' })
+      .select('businessName city createdAt')
+      .populate('category', 'name')
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .lean(),
     Booking.find()
       .sort({ createdAt: -1 })
       .limit(5)
@@ -49,7 +56,8 @@ export const getDashboard = async (req, res) => {
 
   res.json({
     success: true,
-    stats: { totalUsers, totalVendors, totalBookings, pendingVendors, pendingWithdrawals },
+    stats: { totalUsers, totalVendors, totalBookings, pendingVendors: pendingVendorsCount, pendingWithdrawals },
+    pendingVendorList,
     recentBookings,
     revenueData,
   })

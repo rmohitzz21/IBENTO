@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
@@ -15,6 +15,7 @@ import {
   ToggleLeft,
   ToggleRight,
   ArrowUpRight,
+  AlertCircle,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -136,9 +137,95 @@ function DashboardSkeleton() {
   )
 }
 
+/* ─── Pending approval screen ────────────────────────────── */
+function PendingScreen({ onLogout }) {
+  return (
+    <div className="min-h-screen bg-[#FFFDFC] flex items-center justify-center px-6">
+      <div className="text-center max-w-md">
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: 'spring', stiffness: 200 }}
+          className="w-24 h-24 rounded-full mx-auto mb-6 flex items-center justify-center"
+          style={{ background: '#FEF9C3' }}
+        >
+          <Clock size={40} className="text-amber-500" />
+        </motion.div>
+        <h1 className="font-filson font-black text-[#101828] text-3xl mb-3">Application Under Review</h1>
+        <p className="font-lato text-[#6A6A6A] text-sm leading-relaxed mb-2">
+          Your vendor application has been submitted and is being reviewed by the iBento team.
+        </p>
+        <p className="font-lato text-[#6A6A6A] text-sm mb-8">
+          We typically review applications within <span className="font-semibold text-[#101828]">2–3 business days</span>. You'll receive an email notification once approved.
+        </p>
+        <div className="p-4 rounded-xl mb-8 text-left" style={{ background: '#FFFEF5', border: '1px solid rgba(139,67,50,0.1)' }}>
+          <p className="font-lato text-xs text-[#6A6A6A] font-semibold uppercase tracking-wide mb-2">What happens next?</p>
+          {[
+            'Our team reviews your business details',
+            'You receive an approval email',
+            'Your profile goes live on iBento',
+            'Customers can start booking your services',
+          ].map((step, i) => (
+            <div key={i} className="flex items-start gap-2 mt-2">
+              <span className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold text-white mt-0.5" style={{ background: '#F06138' }}>
+                {i + 1}
+              </span>
+              <p className="font-lato text-sm text-[#364153]">{step}</p>
+            </div>
+          ))}
+        </div>
+        <button
+          onClick={onLogout}
+          className="font-lato text-sm text-[#6A6A6A] hover:text-[#F06138] transition-colors underline"
+        >
+          Sign out
+        </button>
+      </div>
+    </div>
+  )
+}
+
+/* ─── Rejected screen ────────────────────────────────────── */
+function RejectedScreen({ onLogout }) {
+  return (
+    <div className="min-h-screen bg-[#FFFDFC] flex items-center justify-center px-6">
+      <div className="text-center max-w-md">
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: 'spring', stiffness: 200 }}
+          className="w-24 h-24 rounded-full mx-auto mb-6 flex items-center justify-center"
+          style={{ background: '#FEE2E2' }}
+        >
+          <AlertCircle size={40} className="text-red-500" />
+        </motion.div>
+        <h1 className="font-filson font-black text-[#101828] text-3xl mb-3">Application Not Approved</h1>
+        <p className="font-lato text-[#6A6A6A] text-sm leading-relaxed mb-8">
+          Unfortunately your vendor application was not approved at this time. Please contact our support team for more information or to reapply.
+        </p>
+        <a
+          href="mailto:support@ibento.in"
+          className="inline-block px-6 py-3 rounded-xl font-lato font-semibold text-sm hover:opacity-90 transition-opacity mb-4"
+          style={{ background: '#F06138', color: '#FDFAD6' }}
+        >
+          Contact Support
+        </a>
+        <br />
+        <button
+          onClick={onLogout}
+          className="font-lato text-sm text-[#6A6A6A] hover:text-[#F06138] transition-colors underline"
+        >
+          Sign out
+        </button>
+      </div>
+    </div>
+  )
+}
+
 /* ─── Main component ─────────────────────────────────────── */
 export default function VendorDashboard() {
-  const { user } = useAuthStore()
+  const { user, logout } = useAuthStore()
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [availToggling, setAvailToggling] = useState(false)
 
@@ -146,6 +233,11 @@ export default function VendorDashboard() {
     queryKey: ['vendor-dashboard'],
     queryFn: () => getVendorDashboard().then((r) => r.data),
   })
+
+  function handleLogout() {
+    logout()
+    navigate('/', { replace: true })
+  }
 
   const availMutation = useMutation({
     mutationFn: (isAvailable) => updateAvailability({ isAvailable }),
@@ -162,6 +254,12 @@ export default function VendorDashboard() {
   const recentBookings = data?.recentBookings || []
   const monthlyEarnings = data?.monthlyEarnings || []
   const vendor = data?.vendor || {}
+
+  // Gate: show pending/rejected screen before rendering the full dashboard
+  if (!isLoading && !isError) {
+    if (vendor.status === 'pending') return <PendingScreen onLogout={handleLogout} />
+    if (vendor.status === 'rejected' || vendor.status === 'suspended') return <RejectedScreen onLogout={handleLogout} />
+  }
 
   const vendorName = vendor.businessName || user?.name || 'Vendor'
   const profileProgress = (() => {

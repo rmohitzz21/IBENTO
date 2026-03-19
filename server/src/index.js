@@ -1,3 +1,6 @@
+import dotenv from 'dotenv'
+dotenv.config()
+
 import 'express-async-errors'
 import express from 'express'
 import { createServer } from 'http'
@@ -6,7 +9,6 @@ import cors from 'cors'
 import helmet from 'helmet'
 import morgan from 'morgan'
 import cookieParser from 'cookie-parser'
-import dotenv from 'dotenv'
 import jwt from 'jsonwebtoken'
 
 import connectDB from './config/db.js'
@@ -31,7 +33,6 @@ import uploadRoutes from './routes/upload.routes.js'
 import adminRoutes from './routes/admin.routes.js'
 import handlers from './socket/handlers.js'
 
-dotenv.config()
 connectDB()
 
 const app = express()

@@ -2,29 +2,23 @@ import { Link, NavLink } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   LayoutDashboard,
-  UserCheck,
   Store,
   Users,
   CalendarCheck,
   Wallet,
-  Tag,
   Star,
-  BarChart2,
   Settings,
 } from 'lucide-react'
 import { useAuthStore } from '../../stores/authStore'
 
 const NAV_ITEMS = [
-  { label: 'Dashboard', icon: LayoutDashboard, to: '/admin/dashboard' },
-  { label: 'Vendor Approvals', icon: UserCheck, to: '/admin/vendor-approvals', badge: true },
-  { label: 'All Vendors', icon: Store, to: '/admin/vendors' },
-  { label: 'All Users', icon: Users, to: '/admin/users' },
-  { label: 'All Bookings', icon: CalendarCheck, to: '/admin/bookings' },
-  { label: 'Withdrawals', icon: Wallet, to: '/admin/withdrawals' },
-  { label: 'Categories', icon: Tag, to: '/admin/categories' },
-  { label: 'Reviews', icon: Star, to: '/admin/reviews' },
-  { label: 'Analytics', icon: BarChart2, to: '/admin/analytics' },
-  { label: 'Settings', icon: Settings, to: '/admin/settings' },
+  { label: 'Dashboard',    icon: LayoutDashboard, to: '/admin/dashboard' },
+  { label: 'Vendors',      icon: Store,           to: '/admin/vendors',  badge: true },
+  { label: 'Users',        icon: Users,           to: '/admin/users' },
+  { label: 'Bookings',     icon: CalendarCheck,   to: '/admin/bookings' },
+  { label: 'Withdrawals',  icon: Wallet,          to: '/admin/payments' },
+  { label: 'Reviews',      icon: Star,            to: '/admin/reviews' },
+  { label: 'Settings',     icon: Settings,        to: '/admin/settings' },
 ]
 
 /**

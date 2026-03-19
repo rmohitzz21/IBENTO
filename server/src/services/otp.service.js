@@ -1,18 +1,31 @@
-import bcrypt from 'bcryptjs'
 import OTP from '../models/OTP.js'
 
 export const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString()
 
+// export const saveOTP = async (identifier, purpose) => {
+//   const otp = generateOTP()
+//   const hashed = await bcrypt.hash(otp, 10)
+//   const expiresAt = new Date(Date.now() + 10 * 60 * 1000) 
+//   await OTP.findOneAndUpdate(
+//     { identifier, purpose },
+//     { otp: hashed, expiresAt, attempts: 0 },
+//     { upsert: true, new: true }
+//   )
+//   return otp 
+// }
+
+
 export const saveOTP = async (identifier, purpose) => {
   const otp = generateOTP()
-  const hashed = await bcrypt.hash(otp, 10)
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10 min
+
   await OTP.findOneAndUpdate(
     { identifier, purpose },
-    { otp: hashed, expiresAt, attempts: 0 },
+    { otp, expiresAt, attempts: 0 }, // store plain OTP
     { upsert: true, new: true }
   )
-  return otp // return plain OTP to send to user
+
+  return otp
 }
 
 export const verifyOTP = async (identifier, purpose, plainOTP) => {
@@ -24,7 +37,7 @@ export const verifyOTP = async (identifier, purpose, plainOTP) => {
   }
   if (record.attempts >= 3) throw new Error('Too many attempts')
 
-  const isMatch = await bcrypt.compare(plainOTP, record.otp)
+  const isMatch = record.otp === plainOTP
   if (!isMatch) {
     record.attempts += 1
     await record.save()

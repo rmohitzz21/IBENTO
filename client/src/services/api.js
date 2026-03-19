@@ -52,6 +52,7 @@ api.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null)
         localStorage.removeItem('accessToken')
+        localStorage.removeItem('ibento-auth') // clear zustand persisted store
         window.location.href = '/login'
         return Promise.reject(refreshError)
       } finally {
