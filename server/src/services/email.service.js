@@ -60,8 +60,10 @@ const purposeLabels = {
 }
 
 export const sendOTPEmail = async (email, otp, purpose) => {
-  // Always log OTP in development so you can test without real SMTP
-  if (process.env.NODE_ENV !== 'production') {
+  const isProduction = process.env.NODE_ENV === 'production'
+
+  // Always log OTP in development — allows testing without real SMTP
+  if (!isProduction) {
     console.log(`\n📧 OTP for ${email} [${purpose}]: \x1b[33m${otp}\x1b[0m\n`)
   }
 
@@ -84,8 +86,12 @@ export const sendOTPEmail = async (email, otp, purpose) => {
       html: baseTemplate(content),
     })
   } catch (error) {
-    // Don't crash registration/login if email fails — OTP is still saved in DB
-    console.error('sendOTPEmail failed (non-fatal):', error.message)
+    if (isProduction) {
+      // In production, email delivery must succeed — caller will get a 500
+      throw new Error(`Failed to send OTP email. Please try again or contact support.`)
+    }
+    // In development, log and continue — OTP is visible in console above
+    console.error('sendOTPEmail failed (non-fatal in dev):', error.message)
   }
 }
 

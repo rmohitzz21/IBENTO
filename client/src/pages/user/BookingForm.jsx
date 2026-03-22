@@ -45,11 +45,13 @@ export default function BookingForm() {
     mutationFn: (data) =>
       createBooking({
         serviceId: service._id,
+        vendorId,
         eventDate: data.eventDate,
+        eventTime: data.eventTime,
         eventType: data.eventType,
         guestCount: data.guestCount,
         eventAddress: data.eventAddress,
-        specialRequests: data.specialRequests,
+        specialRequests: data.specialRequests || '',
       }),
     onSuccess: ({ data }) => {
       toast.success('Booking request sent!')

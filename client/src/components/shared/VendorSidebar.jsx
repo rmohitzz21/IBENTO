@@ -1,17 +1,17 @@
-import { Link, NavLink } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   LayoutDashboard,
   Wrench,
   CalendarCheck,
-  Users,
-  Images,
   MessageSquare,
   Calendar,
   DollarSign,
   Star,
   BarChart2,
   Settings,
+  LogOut,
 } from 'lucide-react'
 import { useAuthStore } from '../../stores/authStore'
 import { useNotificationStore } from '../../stores/notificationStore'
@@ -28,17 +28,30 @@ const NAV_ITEMS = [
   { label: 'Notifications', icon: BarChart2,       to: '/vendor/notifications' },
 ]
 
-/**
- * VendorSidebar — 336px wide sticky sidebar for the vendor dashboard layout.
- *
- * @param {number}  profileProgress  - 0–100 profile completion percentage (default 60)
- * @param {string}  className        - extra classes
- */
-export default function VendorSidebar({ profileProgress = 60, className = '' }) {
-  const { user } = useAuthStore()
-  const unreadMessages = useNotificationStore?.((s) => s.unreadMessages) ?? 3
+function computeProgress(vendor, user) {
+  if (!vendor?._id) return 0
+  let score = 0
+  if (user?.avatar) score += 15
+  if ((vendor.description || '').length >= 20) score += 20
+  if (vendor.phone) score += 10
+  if (vendor.category) score += 10
+  if ((vendor.portfolio || []).length >= 3) score += 20
+  if (vendor.bankAccount?.accountNumber) score += 15
+  if (vendor.pan || vendor.aadhaar) score += 10
+  return score
+}
 
-  const vendorName = user?.businessName ?? user?.name ?? 'Your Business'
+export default function VendorSidebar({ className = '' }) {
+  const { user, logout } = useAuthStore()
+  const navigate = useNavigate()
+  const qc = useQueryClient()
+  const unreadMessages = useNotificationStore?.((s) => s.unreadMessages) ?? 0
+
+  const dashData = qc.getQueryData(['vendor-dashboard'])
+  const vendor = dashData?.vendor || {}
+  const profileProgress = computeProgress(vendor, user)
+
+  const vendorName = vendor.businessName || user?.businessName || user?.name || 'Your Business'
   const vendorInitial = vendorName.charAt(0).toUpperCase()
 
   return (
@@ -64,7 +77,7 @@ export default function VendorSidebar({ profileProgress = 60, className = '' }) 
 
       {/* Navigation */}
       <nav className="flex-1 px-4 py-4 space-y-0.5">
-        {NAV_ITEMS.map((item, index) => {
+        {NAV_ITEMS.map((item) => {
           const Icon = item.icon
           return (
             <NavLink
@@ -88,8 +101,6 @@ export default function VendorSidebar({ profileProgress = 60, className = '' }) 
                     }`}
                   />
                   <span className="flex-1">{item.label}</span>
-
-                  {/* Message unread badge */}
                   {item.badge && unreadMessages > 0 && (
                     <motion.span
                       initial={{ scale: 0 }}
@@ -107,15 +118,28 @@ export default function VendorSidebar({ profileProgress = 60, className = '' }) 
         })}
       </nav>
 
+      {/* Logout */}
+      <div className="mx-4 mb-2">
+        <button
+          onClick={() => { logout(); navigate('/') }}
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
+        >
+          <LogOut size={18} className="shrink-0" />
+          <span>Sign Out</span>
+        </button>
+      </div>
+
       {/* Profile Setup widget */}
       <div className="mx-4 mb-6 rounded-xl p-4" style={{ background: '#FEFDEB' }}>
-        {/* Avatar + name row */}
         <div className="flex items-center gap-3 mb-3">
           <div
-            className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-white font-bold text-sm"
+            className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 overflow-hidden text-white font-bold text-sm"
             style={{ background: '#F06138' }}
           >
-            {vendorInitial}
+            {user?.avatar
+              ? <img src={user.avatar} alt="" className="w-full h-full object-cover" />
+              : vendorInitial
+            }
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-[#424242] truncate font-filson">
@@ -125,7 +149,6 @@ export default function VendorSidebar({ profileProgress = 60, className = '' }) 
           </div>
         </div>
 
-        {/* Progress bar */}
         <div className="mb-2">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs text-[#6A6A6A]">Completion</span>
@@ -137,18 +160,21 @@ export default function VendorSidebar({ profileProgress = 60, className = '' }) 
               animate={{ width: `${profileProgress}%` }}
               transition={{ duration: 1, ease: 'easeOut', delay: 0.3 }}
               className="h-full rounded-full"
-              style={{ background: '#F06138' }}
+              style={{ background: profileProgress === 100 ? '#016630' : '#F06138' }}
             />
           </div>
         </div>
 
-        {/* Complete profile link */}
-        <Link
-          to="/vendor/profile"
-          className="text-xs font-semibold text-orange hover:underline transition-colors"
-        >
-          Complete Profile →
-        </Link>
+        {profileProgress < 100 ? (
+          <Link
+            to="/vendor/profile"
+            className="text-xs font-semibold text-orange hover:underline transition-colors"
+          >
+            Complete Profile →
+          </Link>
+        ) : (
+          <p className="text-xs font-semibold text-[#016630]">Profile Complete!</p>
+        )}
       </div>
     </aside>
   )

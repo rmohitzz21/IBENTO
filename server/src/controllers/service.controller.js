@@ -1,24 +1,40 @@
 import Service from '../models/Service.js'
 import Vendor from '../models/Vendor.js'
+import Category from '../models/Category.js'
 
 // GET /api/services
 export const getServices = async (req, res) => {
-  const { category, vendorId, minPrice, maxPrice, page = 1, limit = 12 } = req.query
+  const { category, categoryName, vendorId, city, minPrice, maxPrice, page = 1, limit = 12 } = req.query
 
   const filter = { isActive: true }
+
   if (category) filter.category = category
+
+  if (categoryName) {
+    const cat = await Category.findOne({ name: new RegExp(`^${categoryName}$`, 'i') })
+    if (cat) filter.category = cat._id
+    else filter.category = null // no match → return empty
+  }
+
   if (vendorId) filter.vendorId = vendorId
+
   if (minPrice || maxPrice) {
     filter.price = {}
     if (minPrice) filter.price.$gte = Number(minPrice)
     if (maxPrice) filter.price.$lte = Number(maxPrice)
   }
 
+  if (city) {
+    const cityVendors = await Vendor.find({ city: new RegExp(city, 'i'), status: 'approved' })
+      .select('_id').lean()
+    filter.vendorId = { $in: cityVendors.map((v) => v._id) }
+  }
+
   const skip = (Number(page) - 1) * Number(limit)
 
   const [services, total] = await Promise.all([
     Service.find(filter)
-      .populate('vendorId', 'businessName rating city isAvailable')
+      .populate('vendorId', 'businessName rating city isAvailable status')
       .populate('category', 'name emoji')
       .sort({ bookingCount: -1 })
       .skip(skip)
@@ -26,9 +42,12 @@ export const getServices = async (req, res) => {
     Service.countDocuments(filter),
   ])
 
+  // Only include services from approved vendors
+  const visible = services.filter((s) => s.vendorId?.status === 'approved')
+
   res.json({
     success: true,
-    services,
+    services: visible,
     pagination: { page: Number(page), limit: Number(limit), total, pages: Math.ceil(total / Number(limit)) },
   })
 }
@@ -48,7 +67,7 @@ export const createService = async (req, res) => {
   const vendor = await Vendor.findOne({ userId: req.user._id, status: 'approved' })
   if (!vendor) return res.status(403).json({ success: false, message: 'Approved vendor account required' })
 
-  const service = await Service.create({ ...req.body, vendorId: vendor._id })
+  const service = await Service.create({ ...req.body, vendorId: vendor._id, category: vendor.category })
   res.status(201).json({ success: true, message: 'Service created', service })
 }
 

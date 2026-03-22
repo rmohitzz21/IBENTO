@@ -16,8 +16,8 @@ import { useSocket } from './hooks/useSocket'
 /* ─── Lazy-loaded pages ─────────────────────────────────────── */
 
 // Public
-const VendorLanding  = lazy(() => import('./pages/public/VendorLanding'))
 const UserLanding    = lazy(() => import('./pages/public/UserLanding'))
+const BecomeVendor   = lazy(() => import('./pages/public/BecomeVendor'))
 const BrowsePage     = lazy(() => import('./pages/public/BrowsePage'))
 const VendorDetail   = lazy(() => import('./pages/public/VendorDetail'))
 const AboutPage      = lazy(() => import('./pages/public/AboutPage'))
@@ -43,6 +43,7 @@ const UserProfile    = lazy(() => import('./pages/user/UserProfile'))
 const Chat           = lazy(() => import('./pages/user/Chat'))
 const Notifications  = lazy(() => import('./pages/user/Notifications'))
 const PaymentPage    = lazy(() => import('./pages/user/PaymentPage'))
+const CreateEvent    = lazy(() => import('./pages/user/CreateEvent'))
 
 // Vendor (protected – role: vendor)
 const VendorDashboard       = lazy(() => import('./pages/vendor/Dashboard'))
@@ -87,6 +88,15 @@ function PageLoader() {
   )
 }
 
+/* ─── Root redirect — smart landing based on auth state ─────── */
+function RootPage() {
+  const { isAuthenticated, user } = useAuthStore()
+  if (!isAuthenticated) return <UserLanding />
+  if (user?.role === 'vendor') return <Navigate to="/vendor/dashboard" replace />
+  if (user?.role === 'admin')  return <Navigate to="/admin/dashboard"  replace />
+  return <Navigate to="/home" replace />
+}
+
 /* ─── Protected Route ───────────────────────────────────────── */
 /**
  * @param {string[]} roles - allowed roles (e.g. ['user', 'admin'])
@@ -123,12 +133,13 @@ function AnimatedRoutes() {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         {/* ── Public ──────────────────────────────────────────── */}
-        <Route path="/" element={<VendorLanding />} />
+        <Route path="/" element={<RootPage />} />
+        <Route path="/become-vendor" element={<BecomeVendor />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/browse" element={<BrowsePage />} />
         <Route path="/vendors/:id" element={<VendorDetail />} />
-        <Route path="/for-customers" element={<UserLanding />} />
+        <Route path="/for-customers" element={<Navigate to="/" replace />} />
 
         {/* ── Auth ────────────────────────────────────────────── */}
         <Route path="/login" element={<Login />} />

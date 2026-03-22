@@ -73,43 +73,99 @@ IBENTO is built to scale. Here are the planned features and potential additions 
 
 ## ⚙️ Local Development Setup
 
-To get the project running locally on your machine, follow these steps:
-
 ### Prerequisites
-- Node.js (v18+)
-- MongoDB (Local instance or MongoDB Atlas URI)
+- Node.js v18+
+- MongoDB Atlas account (free tier is fine)
+- Razorpay test account → [dashboard.razorpay.com](https://dashboard.razorpay.com)
+- Mailtrap account for dev email → [mailtrap.io](https://mailtrap.io)
+- Cloudinary account → [cloudinary.com](https://cloudinary.com)
 
 ### 1. Clone & Install
 ```bash
 # Install server dependencies
-cd server
-npm install
+cd server && npm install
 
 # Install client dependencies
-cd ../client
-npm install
+cd ../client && npm install
 ```
 
-### 2. Environment Variables
-Create `.env` files in both the `server` and `client` directories based on the provided `.env.example` configurations.
-- Ensure the server has access to `MONGO_URI`, `JWT_SECRET`, and any cloud storage/payment keys.
+### 2. Configure Environment Variables
 
-### 3. Run the Development Servers
-You will need two terminal windows:
+**Server** — copy and fill in `server/.env.example` → `server/.env`:
+```env
+PORT=5000
+NODE_ENV=development
+CLIENT_URL=http://localhost:5173
+MONGODB_URI=mongodb+srv://<user>:<pass>@<cluster>.mongodb.net/ibento
+JWT_SECRET=<64 random chars>
+JWT_REFRESH_SECRET=<different 64 random chars>
+RAZORPAY_KEY_ID=rzp_test_xxxx
+RAZORPAY_KEY_SECRET=xxxx
+SMTP_HOST=smtp.mailtrap.io
+SMTP_PORT=587
+SMTP_USER=<mailtrap user>
+SMTP_PASS=<mailtrap pass>
+CLOUDINARY_CLOUD_NAME=xxx
+CLOUDINARY_API_KEY=xxx
+CLOUDINARY_API_SECRET=xxx
+```
 
-**Terminal 1 (Backend):**
+**Client** — copy and fill in `client/.env.example` → `client/.env`:
+```env
+VITE_API_URL=http://localhost:5000/api
+VITE_SOCKET_URL=http://localhost:5000
+VITE_RAZORPAY_KEY_ID=rzp_test_xxxx   # must match server
+```
+
+> **Dev tip:** If SMTP is not configured, OTPs are printed to the server console (green text). Copy from there to test auth flows.
+
+### 3. Seed the Database
+
 ```bash
-cd server
-npm run dev
+cd server && npm run seed:categories
 ```
 
-**Terminal 2 (Frontend):**
+This seeds 10 event categories (Photography, Decoration, Catering, etc.) needed for vendor browsing.
+
+### 4. Create Admin User
+
+Run this one-time in MongoDB Compass or Atlas:
+```javascript
+// In your ibento database → users collection
+db.users.insertOne({
+  name: "Admin",
+  email: "admin@ibento.in",
+  role: "admin",
+  password: "<bcrypt hash of your password>",  // use bcryptjs to hash
+  isVerified: true,
+  createdAt: new Date(),
+  updatedAt: new Date()
+})
+```
+
+Or use this Node.js snippet to generate the hash:
 ```bash
-cd client
-npm run dev
+node -e "require('bcryptjs').hash('YourPassword123', 10).then(h => console.log(h))"
 ```
 
-The frontend will typically run on `http://localhost:5173` and the backend strictly on the port defined in your `.env` (e.g., `http://localhost:5000`).
+### 5. Run Development Servers
+
+**Terminal 1 — Backend:**
+```bash
+cd server && npm run dev   # runs on http://localhost:5000
+```
+
+**Terminal 2 — Frontend:**
+```bash
+cd client && npm run dev   # runs on http://localhost:5173
+```
+
+### 6. Test Login Credentials
+| Role | Email | Method |
+|------|-------|--------|
+| Admin | admin@ibento.in | Password |
+| User | any registered email | OTP (check console/Mailtrap) |
+| Vendor | any registered email | OTP (check console/Mailtrap) |
 
 ---
 

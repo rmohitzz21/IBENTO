@@ -17,7 +17,8 @@
       "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YjkzNDA0MjJlOTVlZmFlODgyYTc2YyIsInJvbGUiOiJ1c2VyIiwiZW1haWwiOiJhcGl0ZXN0MDAxQGV4YW1wbGUuY29tIiwiaWF0IjoxNzczNzQ1MzAyLCJleHAiOjE3NzM3NDYyMDJ9.hK--7ucfZf0Cb0EdETOrN9qekpQEaTuYoOwhbNYUvSU\"\n\necho \"=== Profile ===\" \ncurl -s \"http://localhost:5000/api/users/profile\" -H \"Authorization: Bearer $TOKEN\" | head -c 150\n\necho -e \"\\\\n=== Bookings ===\"\ncurl -s \"http://localhost:5000/api/bookings\" -H \"Authorization: Bearer $TOKEN\" | head -c 150\n\necho -e \"\\\\n=== Cart ===\"\ncurl -s \"http://localhost:5000/api/cart\" -H \"Authorization: Bearer $TOKEN\" | head -c 150\n\necho -e \"\\\\n=== Notifications ===\"\ncurl -s \"http://localhost:5000/api/notifications\" -H \"Authorization: Bearer $TOKEN\" | head -c 150\n\necho -e \"\\\\n=== Wishlist ===\"\ncurl -s \"http://localhost:5000/api/users/wishlist\" -H \"Authorization: Bearer $TOKEN\" | head -c 150\n\necho -e \"\\\\n=== Payment History ===\"\ncurl -s \"http://localhost:5000/api/payments/history\" -H \"Authorization: Bearer $TOKEN\" | head -c 150)",
       "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5YjkzNDA0MjJlOTVlZmFlODgyYTc2YyIsInJvbGUiOiJ1c2VyIiwiZW1haWwiOiJhcGl0ZXN0MDAxQGV4YW1wbGUuY29tIiwiaWF0IjoxNzczNzQ1MzAyLCJleHAiOjE3NzM3NDYyMDJ9.hK--7ucfZf0Cb0EdETOrN9qekpQEaTuYoOwhbNYUvSU\"\ncurl -sv \"http://localhost:5000/api/users/profile\" -H \"Authorization: Bearer $TOKEN\" 2>&1 | tail -20)",
       "Bash(cmd /c \"start /B node D:/Consistency/IBENTO/server/src/index.js > D:/Consistency/IBENTO/server/server.log 2>&1\"\nsleep 4\ncurl -s http://localhost:5000/api/health 2>&1)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(\"D:\\\\Consistency\\\\IBENTO\\\\client\\\\.env.example\":*)"
     ]
   }
 }

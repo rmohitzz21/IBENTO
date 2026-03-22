@@ -177,6 +177,15 @@ export const getVendorReviews = async (req, res) => {
   })
 }
 
+// GET /api/vendors/services (authenticated vendor — own services)
+export const getMyServices = async (req, res) => {
+  const vendor = await Vendor.findOne({ userId: req.user._id })
+  if (!vendor) return res.status(404).json({ success: false, message: 'Vendor profile not found' })
+
+  const services = await Service.find({ vendorId: vendor._id }).sort({ createdAt: -1 })
+  res.json({ success: true, services })
+}
+
 // POST /api/vendors/apply
 export const applyAsVendor = async (req, res) => {
   const existing = await Vendor.findOne({ userId: req.user._id })
@@ -186,6 +195,7 @@ export const applyAsVendor = async (req, res) => {
 
   const {
     businessName, category: categoryName, description, city, state,
+    phone, startingPrice,
     pan, aadhaar, gst, website, yearsInBusiness, teamSize,
     socialLinks, bankAccount,
   } = req.body
@@ -202,6 +212,7 @@ export const applyAsVendor = async (req, res) => {
     businessName,
     category: categoryId,
     description, city, state,
+    phone, startingPrice,
     pan, aadhaar, gst, website, yearsInBusiness, teamSize,
     socialLinks, bankAccount,
     status: 'pending',
@@ -282,14 +293,21 @@ export const updateVendorProfile = async (req, res) => {
   const vendor = await Vendor.findOne({ userId: req.user._id })
   if (!vendor) return res.status(404).json({ success: false, message: 'Vendor profile not found' })
 
-  const allowedFields = [
+  const scalarFields = [
     'businessName', 'description', 'city', 'state', 'website',
     'yearsInBusiness', 'teamSize', 'socialLinks', 'bankAccount',
+    'phone', 'startingPrice', 'pan', 'aadhaar', 'gst', 'portfolio',
   ]
 
-  allowedFields.forEach((field) => {
+  scalarFields.forEach((field) => {
     if (req.body[field] !== undefined) vendor[field] = req.body[field]
   })
+
+  // Resolve category name → ObjectId
+  if (req.body.category) {
+    const cat = await Category.findOne({ name: new RegExp(`^${req.body.category}$`, 'i') })
+    if (cat) vendor.category = cat._id
+  }
 
   await vendor.save()
   res.json({ success: true, message: 'Profile updated', vendor })
@@ -328,38 +346,74 @@ export const getVendorEarnings = async (req, res) => {
   const vendor = await Vendor.findOne({ userId: req.user._id })
   if (!vendor) return res.status(404).json({ success: false, message: 'Vendor profile not found' })
 
-  const earnings = await Booking.aggregate([
-    {
-      $match: {
-        vendorId: vendor._id,
-        paymentStatus: { $in: ['advance-paid', 'fully-paid'] },
+  const now = new Date()
+  const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1)
+
+  const [breakdown, pendingResult] = await Promise.all([
+    Booking.aggregate([
+      {
+        $match: {
+          vendorId: vendor._id,
+          paymentStatus: { $in: ['advance-paid', 'fully-paid'] },
+          createdAt: { $gte: sixMonthsAgo },
+        },
       },
-    },
-    {
-      $group: {
-        _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } },
-        gross: { $sum: '$totalAmount' },
-        net: { $sum: '$netVendorAmount' },
-        count: { $sum: 1 },
+      {
+        $group: {
+          _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } },
+          gross: { $sum: '$totalAmount' },
+          net: { $sum: '$netVendorAmount' },
+          count: { $sum: 1 },
+        },
       },
-    },
-    { $sort: { '_id.year': -1, '_id.month': -1 } },
-    { $limit: 12 },
+      { $sort: { '_id.year': 1, '_id.month': 1 } },
+    ]),
+    Booking.aggregate([
+      {
+        $match: {
+          vendorId: vendor._id,
+          status: { $in: ['confirmed', 'pending'] },
+          paymentStatus: { $nin: ['fully-paid'] },
+        },
+      },
+      { $group: { _id: null, total: { $sum: '$totalAmount' } } },
+    ]),
   ])
 
-  res.json({ success: true, totalEarnings: vendor.totalEarnings, breakdown: earnings })
+  const thisMonthEntry = breakdown.find(
+    (e) => e._id.year === now.getFullYear() && e._id.month === now.getMonth() + 1
+  )
+
+  res.json({
+    success: true,
+    totalEarnings: vendor.totalEarnings,
+    thisMonth: thisMonthEntry?.net || 0,
+    pendingAmount: pendingResult[0]?.total || 0,
+    breakdown,
+  })
 }
 
 // PUT /api/vendors/availability
 export const updateAvailability = async (req, res) => {
-  const { isAvailable } = req.body
+  const { isAvailable, blockedDates } = req.body
+  const update = {}
+  if (typeof isAvailable === 'boolean') update.isAvailable = isAvailable
+  if (Array.isArray(blockedDates)) {
+    // Normalize all dates to midnight UTC to avoid time-zone drift
+    update.blockedDates = blockedDates.map((d) => {
+      const date = new Date(d)
+      date.setHours(0, 0, 0, 0)
+      return date
+    })
+  }
+
   const vendor = await Vendor.findOneAndUpdate(
     { userId: req.user._id },
-    { isAvailable },
+    update,
     { new: true }
   )
   if (!vendor) return res.status(404).json({ success: false, message: 'Vendor profile not found' })
-  res.json({ success: true, isAvailable: vendor.isAvailable })
+  res.json({ success: true, isAvailable: vendor.isAvailable, blockedDates: vendor.blockedDates })
 }
 
 // GET /api/vendors/calendar
@@ -378,7 +432,7 @@ export const getVendorCalendar = async (req, res) => {
   }).select('eventDate status bookingNumber userId')
     .populate('userId', 'name')
 
-  res.json({ success: true, bookings })
+  res.json({ success: true, bookings, blockedDates: vendor.blockedDates || [] })
 }
 
 // GET /api/vendors/leads
@@ -395,6 +449,28 @@ export const getVendorLeads = async (req, res) => {
     .sort({ createdAt: -1 })
 
   res.json({ success: true, leads })
+}
+
+// GET /api/vendors/my-reviews
+export const getMyReviews = async (req, res) => {
+  const vendor = await Vendor.findOne({ userId: req.user._id })
+  if (!vendor) return res.status(404).json({ success: false, message: 'Vendor profile not found' })
+
+  const page = parseInt(req.query.page) || 1
+  const limit = parseInt(req.query.limit) || 20
+  const skip = (page - 1) * limit
+
+  const [reviews, total] = await Promise.all([
+    Review.find({ vendorId: vendor._id, isVisible: true })
+      .populate('userId', 'name avatar')
+      .populate({ path: 'bookingId', populate: { path: 'serviceId', select: 'name title' } })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit),
+    Review.countDocuments({ vendorId: vendor._id, isVisible: true }),
+  ])
+
+  res.json({ success: true, reviews, total, avgRating: vendor.rating, totalReviews: vendor.totalReviews })
 }
 
 // POST /api/vendors/leads/:id/respond
@@ -426,10 +502,61 @@ export const respondToLead = async (req, res) => {
 
 // POST /api/vendors/calendar/block
 export const blockCalendarDate = async (req, res) => {
-  res.json({ success: true, message: 'Feature coming soon' })
+  const { date } = req.body
+  if (!date) return res.status(400).json({ success: false, message: 'Date is required' })
+
+  const vendor = await Vendor.findOne({ userId: req.user._id })
+  if (!vendor) return res.status(404).json({ success: false, message: 'Vendor profile not found' })
+
+  const blockDate = new Date(date)
+  blockDate.setHours(0, 0, 0, 0)
+
+  // Check if date has a confirmed booking
+  const confirmedBooking = await Booking.findOne({
+    vendorId: vendor._id,
+    eventDate: blockDate,
+    status: { $in: ['confirmed', 'pending'] },
+  })
+  if (confirmedBooking) {
+    return res.status(409).json({
+      success: false,
+      message: 'Cannot block a date that already has a confirmed booking.',
+    })
+  }
+
+  // Avoid duplicate blocks
+  const alreadyBlocked = vendor.blockedDates.some(
+    (d) => new Date(d).toDateString() === blockDate.toDateString()
+  )
+  if (alreadyBlocked) {
+    return res.status(409).json({ success: false, message: 'Date is already blocked' })
+  }
+
+  vendor.blockedDates.push(blockDate)
+  await vendor.save()
+
+  res.json({ success: true, message: 'Date blocked successfully', blockedDates: vendor.blockedDates })
 }
 
-// DELETE /api/vendors/calendar/:dateId
+// DELETE /api/vendors/calendar/:dateId  (dateId = ISO date string, URL-encoded)
 export const unblockCalendarDate = async (req, res) => {
-  res.json({ success: true, message: 'Feature coming soon' })
+  const vendor = await Vendor.findOne({ userId: req.user._id })
+  if (!vendor) return res.status(404).json({ success: false, message: 'Vendor profile not found' })
+
+  const dateToRemove = new Date(decodeURIComponent(req.params.dateId))
+  if (isNaN(dateToRemove)) {
+    return res.status(400).json({ success: false, message: 'Invalid date format' })
+  }
+
+  const originalCount = vendor.blockedDates.length
+  vendor.blockedDates = vendor.blockedDates.filter(
+    (d) => new Date(d).toDateString() !== dateToRemove.toDateString()
+  )
+
+  if (vendor.blockedDates.length === originalCount) {
+    return res.status(404).json({ success: false, message: 'Date not found in blocked list' })
+  }
+
+  await vendor.save()
+  res.json({ success: true, message: 'Date unblocked successfully', blockedDates: vendor.blockedDates })
 }

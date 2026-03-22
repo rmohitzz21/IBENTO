@@ -19,14 +19,22 @@ export const createBooking = async (req, res) => {
 
   const vendor = service.vendorId
   if (!vendor || vendor.status !== 'approved') {
-    return res.status(400).json({ success: false, message: 'Vendor not available' })
+    return res.status(400).json({ success: false, message: 'Vendor not available for booking' })
+  }
+
+  if (!vendor.isAvailable) {
+    return res.status(400).json({ success: false, message: 'Vendor is currently not accepting bookings' })
   }
 
   // Check date availability
   const eDate = new Date(eventDate)
+  eDate.setHours(0, 0, 0, 0)
+
   const minDays = service.minBookingDays || 1
   const minDate = new Date()
   minDate.setDate(minDate.getDate() + minDays)
+  minDate.setHours(0, 0, 0, 0)
+
   if (eDate < minDate) {
     return res.status(400).json({
       success: false,
@@ -34,14 +42,29 @@ export const createBooking = async (req, res) => {
     })
   }
 
-  // Check for existing bookings on that date
+  // Check if vendor has blocked this date
+  const vendorFull = await Vendor.findById(vendor._id)
+  const isBlockedByVendor = (vendorFull.blockedDates || []).some(
+    (d) => new Date(d).toDateString() === eDate.toDateString()
+  )
+  if (isBlockedByVendor) {
+    return res.status(409).json({
+      success: false,
+      message: 'The vendor has blocked this date. Please choose a different date.',
+    })
+  }
+
+  // Check for existing confirmed/pending bookings on that date
   const conflict = await Booking.findOne({
     vendorId: vendor._id,
-    eventDate: eDate,
+    eventDate: { $gte: eDate, $lt: new Date(eDate.getTime() + 24 * 60 * 60 * 1000) },
     status: { $in: ['pending', 'confirmed'] },
   })
   if (conflict) {
-    return res.status(409).json({ success: false, message: 'Vendor is already booked on this date' })
+    return res.status(409).json({
+      success: false,
+      message: 'Vendor is already booked on this date. Please choose another date.',
+    })
   }
 
   // Calculate amounts

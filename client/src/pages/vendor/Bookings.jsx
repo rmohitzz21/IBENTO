@@ -23,12 +23,16 @@ const STATUS_STYLE = {
   rejected:  { bg: '#FFE2E2', color: '#9F0712' },
 }
 
-const MOCK_BOOKINGS = [
-  { _id: 'b1', status: 'pending',   eventDate: '2025-04-15', totalAmount: 45000, customer: { name: 'Priya Sharma',   phone: '9812345678' }, service: { name: 'Basic Wedding Package' }, guests: 150 },
-  { _id: 'b2', status: 'confirmed', eventDate: '2025-05-20', totalAmount: 25000, customer: { name: 'Rahul Mehta',   phone: '9876543210' }, service: { name: 'Engagement Shoot' }, guests: 50 },
-  { _id: 'b3', status: 'completed', eventDate: '2025-01-10', totalAmount: 32000, customer: { name: 'Ananya Singh',  phone: '9901234567' }, service: { name: 'Premium Decoration' }, guests: 200 },
-  { _id: 'b4', status: 'cancelled', eventDate: '2024-12-05', totalAmount: 12000, customer: { name: 'Vikram Nair',   phone: '9765432109' }, service: { name: 'Birthday Package' }, guests: 30 },
-]
+function normalizeBooking(b) {
+  return {
+    ...b,
+    customer: b.userId
+      ? { name: b.userId.name, phone: b.userId.phone, avatar: b.userId.avatar }
+      : { name: '—', phone: '—' },
+    service: b.serviceId ? { name: b.serviceId.title } : { name: '—' },
+    guests: b.guestCount || 0,
+  }
+}
 
 export default function VendorBookings() {
   const [activeTab, setActiveTab] = useState('all')
@@ -39,11 +43,12 @@ export default function VendorBookings() {
     queryFn: () => getVendorBookings({ status: activeTab !== 'all' ? activeTab : undefined }),
   })
 
-  const allBookings = data?.data?.bookings || MOCK_BOOKINGS
+  const allBookings = (data?.data?.bookings || []).map(normalizeBooking)
   const bookings = allBookings.filter((b) =>
-    activeTab !== 'all' ? b.status === activeTab : true
-  ).filter((b) =>
-    search ? b.customer?.name?.toLowerCase().includes(search.toLowerCase()) || b.service?.name?.toLowerCase().includes(search.toLowerCase()) : true
+    search
+      ? b.customer?.name?.toLowerCase().includes(search.toLowerCase()) ||
+        b.service?.name?.toLowerCase().includes(search.toLowerCase())
+      : true
   )
 
   return (
@@ -86,11 +91,14 @@ export default function VendorBookings() {
 
         {/* Table */}
         {isLoading ? (
-          <div className="space-y-3">{[1,2,3].map((i) => <div key={i} className="skeleton h-16 rounded-xl" />)}</div>
+          <div className="space-y-3">{[1,2,3].map((i) => <div key={i} className="animate-pulse h-16 bg-gray-100 rounded-xl" />)}</div>
         ) : bookings.length === 0 ? (
           <div className="py-16 text-center rounded-2xl bg-white border border-black/5">
             <CalendarDays size={36} className="text-gray-300 mx-auto mb-3" />
             <p className="font-lato font-semibold text-[#101828] text-sm">No bookings found</p>
+            <p className="font-lato text-xs text-[#6A6A6A] mt-1">
+              {activeTab === 'all' ? 'Bookings from customers will appear here' : `No ${activeTab} bookings`}
+            </p>
           </div>
         ) : (
           <div className="bg-white rounded-2xl border border-black/5 overflow-hidden">
@@ -120,7 +128,7 @@ export default function VendorBookings() {
                           </span>
                         </div>
                       </td>
-                      <td className="px-4 py-3.5 font-lato text-sm text-[#364153]">{b.guests}</td>
+                      <td className="px-4 py-3.5 font-lato text-sm text-[#364153]">{b.guests || '—'}</td>
                       <td className="px-4 py-3.5">
                         <div className="flex items-center gap-0.5 font-lato font-bold text-[#8B4332] text-sm">
                           <IndianRupee size={13} />

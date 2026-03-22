@@ -10,10 +10,12 @@ import {
   Menu,
   X,
   Plus,
-  Phone,
+  LogOut,
+  Bell,
 } from 'lucide-react'
 import { useAuthStore } from '../../stores/authStore'
 import { useCartStore } from '../../stores/cartStore'
+import { useCityStore } from '../../stores/cityStore'
 
 const CITIES = [
   'Ahmedabad',
@@ -42,7 +44,7 @@ export default function UserNavbar() {
   const items = useCartStore((s) => s.items)
   const cartCount = items.length
 
-  const [city, setCity] = useState('Ahmedabad')
+  const { city, setCity } = useCityStore()
   const [cityOpen, setCityOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -78,7 +80,7 @@ export default function UserNavbar() {
         <div className="max-w-[1280px] mx-auto px-6 h-16 flex items-center gap-6">
           {/* Logo */}
           <Link
-            to="/"
+            to="/home"
             className="font-filson font-black text-2xl text-brown shrink-0"
             style={{ letterSpacing: '-0.04em' }}
           >
@@ -137,6 +139,23 @@ export default function UserNavbar() {
             aria-label="Wishlist"
           >
             <Heart size={20} className="text-orange fill-orange" />
+          </Link>
+
+          {/* Notifications bell */}
+          <Link
+            to="/notifications"
+            className="hidden md:flex items-center justify-center relative w-9 h-9 rounded-full hover:bg-orange-light transition-colors"
+            aria-label="Notifications"
+          >
+            <Bell size={20} className="text-orange" />
+            <motion.span
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full text-[10px] font-bold text-white flex items-center justify-center"
+              style={{ background: '#FB2C36' }}
+            >
+              3
+            </motion.span>
           </Link>
 
           {/* Cart */}
@@ -326,8 +345,8 @@ export default function UserNavbar() {
                 </Link>
               </div>
 
-              {/* Profile */}
-              <div className="pt-3 border-t border-gray-100">
+              {/* Profile + logout */}
+              <div className="pt-3 border-t border-gray-100 space-y-1">
                 <Link
                   to="/profile"
                   onClick={() => setMobileOpen(false)}
@@ -341,6 +360,15 @@ export default function UserNavbar() {
                   </div>
                   <span className="text-sm font-medium text-[#4C4C4C]">{displayName}</span>
                 </Link>
+                <button
+                  onClick={() => { useAuthStore.getState().logout(); navigate('/') }}
+                  className="flex items-center gap-3 py-2 w-full text-left"
+                >
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center bg-red-50">
+                    <LogOut size={16} className="text-red-500" />
+                  </div>
+                  <span className="text-sm font-medium text-red-500">Sign Out</span>
+                </button>
               </div>
             </div>
           </motion.div>

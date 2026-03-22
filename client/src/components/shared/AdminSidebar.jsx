@@ -1,4 +1,4 @@
-import { Link, NavLink } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   LayoutDashboard,
@@ -8,6 +8,7 @@ import {
   Wallet,
   Star,
   Settings,
+  LogOut,
 } from 'lucide-react'
 import { useAuthStore } from '../../stores/authStore'
 
@@ -28,7 +29,8 @@ const NAV_ITEMS = [
  * @param {string}  className         - extra classes
  */
 export default function AdminSidebar({ pendingApprovals = 0, className = '' }) {
-  const { user } = useAuthStore()
+  const { user, logout } = useAuthStore()
+  const navigate = useNavigate()
   const adminName = user?.name ?? 'Admin'
   const adminInitial = adminName.charAt(0).toUpperCase()
 
@@ -108,7 +110,7 @@ export default function AdminSidebar({ pendingApprovals = 0, className = '' }) {
       </nav>
 
       {/* Admin profile footer */}
-      <div className="mx-4 mb-6 rounded-xl p-4 border border-gray-100">
+      <div className="mx-4 mb-2 rounded-xl p-4 border border-gray-100">
         <div className="flex items-center gap-3">
           <div
             className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-white font-bold text-sm"
@@ -121,6 +123,17 @@ export default function AdminSidebar({ pendingApprovals = 0, className = '' }) {
             <p className="text-xs text-[#6A6A6A]">Administrator</p>
           </div>
         </div>
+      </div>
+
+      {/* Logout */}
+      <div className="mx-4 mb-6">
+        <button
+          onClick={() => { logout(); navigate('/') }}
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
+        >
+          <LogOut size={17} className="shrink-0" />
+          <span>Sign Out</span>
+        </button>
       </div>
     </aside>
   )

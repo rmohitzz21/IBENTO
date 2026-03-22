@@ -113,7 +113,14 @@ const vendorSchema = new mongoose.Schema(
     },
     website: { type: String },
     yearsInBusiness: { type: Number },
+    phone: { type: String },
+    startingPrice: { type: Number },
     teamSize: { type: Number },
+    blockedDates: [
+      {
+        type: Date,
+      },
+    ],
   },
   { timestamps: true }
 )
