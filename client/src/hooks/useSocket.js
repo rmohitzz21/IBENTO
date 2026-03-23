@@ -72,7 +72,7 @@ export const useSocket = () => {
   }, [])
 
   const joinConversation = useCallback((conversationId) => {
-    emit('conversation:join', { conversationId })
+    emit('join:conversation', { conversationId })
   }, [emit])
 
   const sendMessage = useCallback((data) => {
@@ -80,7 +80,7 @@ export const useSocket = () => {
   }, [emit])
 
   const sendTyping = useCallback((conversationId, isTyping) => {
-    emit('typing', { conversationId, isTyping })
+    emit(isTyping ? 'typing:start' : 'typing:stop', { conversationId })
   }, [emit])
 
   return {
