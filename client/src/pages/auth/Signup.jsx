@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { User, Store, ArrowRight } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { register as registerUser } from '../../services/auth'
 
@@ -12,7 +12,6 @@ const schema = z.object({
   name:  z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Please enter a valid email'),
   phone: z.string().regex(/^[6-9]\d{9}$/, 'Enter a valid 10-digit mobile number'),
-  role:  z.enum(['user', 'vendor']),
 })
 
 const GoogleIcon = () => (
@@ -27,18 +26,15 @@ const GoogleIcon = () => (
 export default function Signup() {
   const navigate = useNavigate()
 
-  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm({
+  const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: zodResolver(schema),
-    defaultValues: { role: 'user' },
   })
 
-  const role = watch('role')
-
   const mutation = useMutation({
-    mutationFn: registerUser,
+    mutationFn: (data) => registerUser({ ...data, role: 'user' }),
     onSuccess: (_, vars) => {
       toast.success('Account created! Check your email for the OTP.')
-      navigate('/verify-otp', { state: { email: vars.email, purpose: 'register', role: vars.role } })
+      navigate('/verify-otp', { state: { email: vars.email, purpose: 'register', role: 'user' } })
     },
     onError: (err) => toast.error(err?.response?.data?.message || 'Registration failed. Try again.'),
   })
@@ -108,39 +104,6 @@ export default function Signup() {
               Join thousands planning amazing events
             </p>
           </div>
-
-          {/* Role toggle */}
-          <div className="flex rounded-xl p-1 mb-6" style={{ background: 'rgba(139,67,50,0.06)', border: '1px solid rgba(139,67,50,0.12)' }}>
-            {[
-              { value: 'user',   label: 'I\'m a Customer', icon: User },
-              { value: 'vendor', label: 'I\'m a Vendor',   icon: Store },
-            ].map(({ value, label, icon: Icon }) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setValue('role', value)}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg font-lato font-semibold text-sm transition-all duration-200"
-                style={role === value
-                  ? { background: '#F06138', color: '#FDFAD6', boxShadow: '0 2px 8px rgba(240,97,56,0.25)' }
-                  : { color: '#6A6A6A' }
-                }
-              >
-                <Icon size={15} /> {label}
-              </button>
-            ))}
-          </div>
-
-          {/* Role hint */}
-          {role === 'vendor' && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              className="mb-4 p-3 rounded-xl text-xs font-lato"
-              style={{ background: '#FFF3EF', color: '#8B4332', border: '1px solid rgba(240,97,56,0.2)' }}
-            >
-              💼 As a vendor, you'll complete your business profile after verifying your email.
-            </motion.div>
-          )}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
             {/* Name */}
@@ -221,8 +184,7 @@ export default function Signup() {
                 </>
               ) : (
                 <>
-                  {role === 'vendor' ? 'Create Vendor Account' : 'Create Account'}
-                  <ArrowRight size={15} />
+                  Create Account <ArrowRight size={15} />
                 </>
               )}
             </motion.button>

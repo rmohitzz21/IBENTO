@@ -1,19 +1,40 @@
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useCallback } from 'react'
 import { io } from 'socket.io-client'
 import { useAuthStore } from '../stores/authStore'
 import { useChatStore } from '../stores/chatStore'
 import { useNotificationStore } from '../stores/notificationStore'
 
+// Module-level singleton — shared across all component instances
+let _socket = null
+let _socketToken = null
+
 export const useSocket = () => {
-  const socketRef = useRef(null)
   const { accessToken, isAuthenticated } = useAuthStore()
   const { addMessage, updateConversationLastMessage } = useChatStore()
   const { addNotification } = useNotificationStore()
 
   useEffect(() => {
-    if (!isAuthenticated || !accessToken) return
+    // Not authenticated — disconnect and clear
+    if (!isAuthenticated || !accessToken) {
+      if (_socket) {
+        _socket.disconnect()
+        _socket = null
+        _socketToken = null
+      }
+      return
+    }
 
-    socketRef.current = io(
+    // Already connected with the exact same token — no-op
+    if (_socket?.connected && _socketToken === accessToken) return
+
+    // Disconnect stale socket (different/expired token, or disconnected)
+    if (_socket) {
+      _socket.disconnect()
+      _socket = null
+      _socketToken = null
+    }
+
+    _socket = io(
       import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000',
       {
         auth: { token: accessToken },
@@ -23,39 +44,31 @@ export const useSocket = () => {
         reconnectionDelay: 1000,
       }
     )
+    _socketToken = accessToken
 
-    const socket = socketRef.current
-
-    socket.on('connect', () => {
-      console.log('[Socket] Connected:', socket.id)
+    _socket.on('connect', () => {
+      console.log('[Socket] Connected:', _socket.id)
     })
-
-    socket.on('disconnect', (reason) => {
+    _socket.on('disconnect', (reason) => {
       console.log('[Socket] Disconnected:', reason)
     })
-
-    socket.on('message:receive', ({ message }) => {
+    _socket.on('connect_error', (err) => {
+      console.error('[Socket] Connection error:', err.message)
+    })
+    _socket.on('message:receive', ({ message }) => {
       addMessage(message.conversationId, message)
       updateConversationLastMessage(message.conversationId, message)
     })
-
-    socket.on('notification:push', (notification) => {
+    _socket.on('notification:push', (notification) => {
       addNotification(notification)
     })
 
-    socket.on('connect_error', (err) => {
-      console.error('[Socket] Connection error:', err.message)
-    })
-
-    return () => {
-      socket.disconnect()
-    }
+    // Do NOT disconnect on unmount — the singleton must stay alive
+    // across component mounts/unmounts. Cleanup only on auth change above.
   }, [isAuthenticated, accessToken])
 
   const emit = useCallback((event, data) => {
-    if (socketRef.current?.connected) {
-      socketRef.current.emit(event, data)
-    }
+    if (_socket?.connected) _socket.emit(event, data)
   }, [])
 
   const joinConversation = useCallback((conversationId) => {
@@ -71,11 +84,10 @@ export const useSocket = () => {
   }, [emit])
 
   return {
-    socketRef,
     emit,
     joinConversation,
     sendMessage,
     sendTyping,
-    isConnected: socketRef.current?.connected ?? false,
+    isConnected: _socket?.connected ?? false,
   }
 }

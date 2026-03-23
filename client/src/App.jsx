@@ -44,6 +44,7 @@ const Chat           = lazy(() => import('./pages/user/Chat'))
 const Notifications  = lazy(() => import('./pages/user/Notifications'))
 const PaymentPage    = lazy(() => import('./pages/user/PaymentPage'))
 const CreateEvent    = lazy(() => import('./pages/user/CreateEvent'))
+const Offers         = lazy(() => import('./pages/user/Offers'))
 
 // Vendor (protected – role: vendor)
 const VendorDashboard       = lazy(() => import('./pages/vendor/Dashboard'))
@@ -387,9 +388,18 @@ function AnimatedRoutes() {
           }
         />
 
+        {/* ── Offers ──────────────────────────────────────────── */}
+        <Route
+          path="/offers"
+          element={
+            <ProtectedRoute roles={['user']}>
+              <Offers />
+            </ProtectedRoute>
+          }
+        />
+
         {/* ── Navbar link redirects (no dedicated page yet) ─── */}
         <Route path="/cart" element={<Navigate to="/wishlist" replace />} />
-        <Route path="/offers" element={<Navigate to="/explore" replace />} />
         <Route path="/services" element={<Navigate to="/explore" replace />} />
         <Route path="/create-event" element={<Navigate to="/vendor/apply" replace />} />
         <Route path="/settings" element={<Navigate to="/profile" replace />} />

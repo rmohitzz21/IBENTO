@@ -187,13 +187,19 @@ export default function ContactPage() {
                       </div>
                       <h3 className="font-filson font-bold text-[#101828] text-2xl mb-2">Message Sent!</h3>
                       <p className="font-lato text-[#6A6A6A] mb-6">We've received your message and will get back to you within 24 hours.</p>
-                      <button
+                      <motion.button
                         onClick={() => setSubmitted(false)}
-                        className="px-6 py-2.5 rounded-lg font-lato font-semibold text-sm transition-colors hover:opacity-90"
-                        style={{ background: '#F06138', color: '#FDFAD6' }}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.97 }}
+                        className="px-6 py-2.5 rounded-xl font-lato font-bold text-sm hover:opacity-90 transition-all"
+                        style={{
+                          background: 'linear-gradient(135deg, #F06138 0%, #d9461f 100%)',
+                          color: '#FDFAD6',
+                          boxShadow: '0 4px 14px rgba(240,97,56,0.35)',
+                        }}
                       >
                         Send Another
-                      </button>
+                      </motion.button>
                     </motion.div>
                   ) : (
                     <motion.form
@@ -289,12 +295,13 @@ export default function ContactPage() {
                       <motion.button
                         type="submit"
                         disabled={isSubmitting}
-                        whileHover={{ scale: isSubmitting ? 1 : 1.01 }}
-                        whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
-                        className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-lato font-semibold text-sm transition-all"
+                        whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
+                        whileTap={{ scale: isSubmitting ? 1 : 0.97 }}
+                        className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-lato font-bold text-sm transition-all hover:opacity-90 disabled:opacity-60"
                         style={{
-                          background: isSubmitting ? '#c0956b' : '#F06138',
+                          background: 'linear-gradient(135deg, #F06138 0%, #d9461f 100%)',
                           color: '#FDFAD6',
+                          boxShadow: '0 4px 14px rgba(240,97,56,0.35)',
                           cursor: isSubmitting ? 'not-allowed' : 'pointer',
                         }}
                       >

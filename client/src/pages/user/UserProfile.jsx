@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   User, Camera, Eye, EyeOff, Save, CheckCircle,
   CalendarCheck2, Heart, Star, ShieldCheck, Mail,
-  Phone as PhoneIcon, Bell,
+  Phone as PhoneIcon, Bell, Loader2,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import UserNavbar from '../../components/shared/UserNavbar'
@@ -58,6 +58,28 @@ export default function UserProfile() {
   const [showCurrent, setShowCurrent] = useState(false)
   const [showNew, setShowNew] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const avatarInputRef = useRef(null)
+
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingAvatar(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const { data } = await api.post('/users/avatar', formData, {
+        headers: { 'Content-Type': undefined },
+      })
+      updateUser({ avatar: data.avatar })
+      toast.success('Profile photo updated!')
+    } catch {
+      toast.error('Failed to upload photo.')
+    } finally {
+      setUploadingAvatar(false)
+      e.target.value = ''
+    }
+  }
 
   const { data: bookingsData } = useQuery({ queryKey: ['my-bookings', 'all'], queryFn: () => getMyBookings() })
   const { data: wishlistData } = useQuery({ queryKey: ['wishlist'], queryFn: getWishlist })
@@ -116,11 +138,23 @@ export default function UserProfile() {
                 }
               </div>
               <button
-                className="absolute -bottom-2 -right-2 w-8 h-8 rounded-xl flex items-center justify-center border-2 border-white shadow-md transition-transform hover:scale-110"
+                onClick={() => avatarInputRef.current?.click()}
+                disabled={uploadingAvatar}
+                className="absolute -bottom-2 -right-2 w-8 h-8 rounded-xl flex items-center justify-center border-2 border-white shadow-md transition-transform hover:scale-110 disabled:opacity-60"
                 style={{ background: '#F06138' }}
               >
-                <Camera size={13} className="text-white" />
+                {uploadingAvatar
+                  ? <Loader2 size={12} className="text-white animate-spin" />
+                  : <Camera size={13} className="text-white" />
+                }
               </button>
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarChange}
+              />
             </div>
 
             {/* Name + info */}

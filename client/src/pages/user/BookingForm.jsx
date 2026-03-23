@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -26,6 +26,7 @@ const MOCK_SERVICE = { _id: 's1', name: 'Basic Wedding Package', price: 45000, d
 export default function BookingForm() {
   const { vendorId, serviceId } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
 
   const { data: vData } = useQuery({ queryKey: ['vendor', vendorId], queryFn: () => getVendor(vendorId), enabled: !!vendorId })
   const { data: sData } = useQuery({ queryKey: ['vendor-services', vendorId], queryFn: () => getVendorServices(vendorId), enabled: !!vendorId })
@@ -34,9 +35,11 @@ export default function BookingForm() {
   const services = sData?.data?.services || [MOCK_SERVICE]
   const service = services.find((s) => s._id === serviceId) || services[0] || MOCK_SERVICE
 
+  const prefilledDate = location.state?.eventDate
+
   const { register, handleSubmit, watch, formState: { errors } } = useForm({
     resolver: zodResolver(schema),
-    defaultValues: { guestCount: 50 },
+    defaultValues: { guestCount: 50, eventDate: prefilledDate || '' },
   })
 
   const guestCount = watch('guestCount') || 50
@@ -169,7 +172,7 @@ export default function BookingForm() {
 
               {/* Service details */}
               <div className="p-5" style={{ background: '#FEFDEB' }}>
-                <h3 className="font-lato font-bold text-[#101828] text-sm mb-1">{service.name}</h3>
+                <h3 className="font-lato font-bold text-[#101828] text-sm mb-1">{service.title}</h3>
                 <p className="font-lato text-[#6A6A6A] text-xs leading-relaxed mb-4">{service.description}</p>
 
                 <div className="space-y-2 text-sm font-lato mb-4">

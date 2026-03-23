@@ -1,45 +1,17 @@
 import { useState, useEffect, useRef } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import { Send, Search, MessageSquare } from 'lucide-react'
 import UserNavbar from '../../components/shared/UserNavbar'
 import { useChatStore } from '../../stores/chatStore'
 import { useSocket } from '../../hooks/useSocket'
+import { useAuthStore } from '../../stores/authStore'
 import { pageVariants } from '../../animations/pageTransitions'
 import api from '../../services/api'
 
-const MOCK_CONVERSATIONS = [
-  {
-    _id: 'c1',
-    vendor: { _id: 'v1', businessName: 'Royal Events & Décor', avatar: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=80&q=80' },
-    lastMessage: { content: 'Sure, we can customize the package!', createdAt: new Date(Date.now() - 5 * 60 * 1000).toISOString() },
-    unreadCount: 2,
-  },
-  {
-    _id: 'c2',
-    vendor: { _id: 'v2', businessName: 'Lens & Light Studio', avatar: 'https://images.unsplash.com/photo-1606216794074-735e91aa2c92?w=80&q=80' },
-    lastMessage: { content: 'Please share your event details.', createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() },
-    unreadCount: 0,
-  },
-  {
-    _id: 'c3',
-    vendor: { _id: 'v3', businessName: 'Flavours of India', avatar: 'https://images.unsplash.com/photo-1555244162-803834f70033?w=80&q=80' },
-    lastMessage: { content: 'Thank you for your booking!', createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() },
-    unreadCount: 0,
-  },
-]
-
-const MOCK_MESSAGES = {
-  c1: [
-    { _id: 'm1', content: 'Hi, I wanted to ask about your wedding decoration packages.', sender: 'user', createdAt: new Date(Date.now() - 30 * 60 * 1000).toISOString() },
-    { _id: 'm2', content: 'Hello! Of course, we have three tiers — Basic, Premium, and Luxury.', sender: 'vendor', createdAt: new Date(Date.now() - 28 * 60 * 1000).toISOString() },
-    { _id: 'm3', content: 'Can the Basic package be customized with more flowers?', sender: 'user', createdAt: new Date(Date.now() - 10 * 60 * 1000).toISOString() },
-    { _id: 'm4', content: 'Sure, we can customize the package!', sender: 'vendor', createdAt: new Date(Date.now() - 5 * 60 * 1000).toISOString() },
-  ],
-}
-
 function timeAgo(iso) {
+  if (!iso) return ''
   const diff = (Date.now() - new Date(iso)) / 1000
   if (diff < 60) return 'just now'
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
@@ -47,46 +19,84 @@ function timeAgo(iso) {
   return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
 }
 
-export default function Chat() {
-  const [searchParams] = useSearchParams()
-  const vendorIdParam = searchParams.get('vendorId')
+// Normalise a raw conversation from the server.
+// In user chat the "other" participant is the vendor.
+function normalizeConversation(conv, userId) {
+  const other = conv.participants?.find((p) => {
+    const pid = p._id?.toString()
+    return pid && pid !== userId?.toString()
+  }) || conv.participants?.[0]
 
+  const unreadMap = conv.unreadCount || {}
+  const myUnread = typeof unreadMap === 'object' ? (unreadMap[userId] || 0) : 0
+
+  return {
+    ...conv,
+    vendor: {
+      _id: other?._id,
+      businessName: other?.businessName || other?.name || '—',
+      avatar: other?.avatar || null,
+    },
+    lastMessage: {
+      content: conv.lastMessage || '',
+      createdAt: conv.lastMessageAt || conv.updatedAt,
+    },
+    unreadCount: myUnread,
+  }
+}
+
+// Determine if a message was sent by the current user
+function isMine(msg, userId) {
+  if (msg.sender === 'user') return true
+  if (msg.senderId?._id) return msg.senderId._id.toString() === userId?.toString()
+  if (typeof msg.senderId === 'string') return msg.senderId === userId?.toString()
+  return false
+}
+
+export default function Chat() {
+  const location = useLocation()
+  const locationState = location.state || {}
+
+  const { user } = useAuthStore()
   const {
     conversations, activeConversation, messages,
     setConversations, setActiveConversation, setMessages, addMessage, typingUsers,
   } = useChatStore()
-  const { joinConversation, sendMessage, sendTyping } = useSocket()
+  const { joinConversation, sendTyping } = useSocket()
 
   const [input, setInput] = useState('')
   const [search, setSearch] = useState('')
+  const [sending, setSending] = useState(false)
   const [typingTimeout, setTypingTimeout] = useState(null)
   const messagesEndRef = useRef(null)
 
   const { data: convData } = useQuery({
     queryKey: ['conversations'],
-    queryFn: () => api.get('/chat/conversations'),
+    queryFn: () => api.get('/messages/conversations'),
   })
 
+  // Load & normalise conversations, auto-select when coming from VendorProfile
   useEffect(() => {
-    const convs = convData?.data?.conversations || MOCK_CONVERSATIONS
-    if (convs.length) {
-      setConversations(convs)
-      // Auto-select vendor conversation when coming from vendor profile
-      if (vendorIdParam && !activeConversation) {
-        const match = convs.find((c) => c.vendor?._id === vendorIdParam)
+    const raw = convData?.data?.conversations || []
+    const normalised = raw.map((c) => normalizeConversation(c, user?.id))
+    if (normalised.length) {
+      setConversations(normalised)
+
+      // Auto-open a specific vendor conversation from navigation state
+      if (locationState.userId && !activeConversation) {
+        const match = normalised.find((c) => c.vendor?._id?.toString() === locationState.userId?.toString())
         if (match) selectConversation(match)
       }
     }
-  }, [convData, vendorIdParam])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [convData])
 
-  const allConversations = convData?.data?.conversations || MOCK_CONVERSATIONS
-
-  const displayConversations = allConversations.filter((c) =>
+  const displayConversations = (conversations || []).filter((c) =>
     search ? c.vendor?.businessName?.toLowerCase().includes(search.toLowerCase()) : true
   )
 
   const activeMessages = activeConversation
-    ? (messages[activeConversation._id] || MOCK_MESSAGES[activeConversation._id] || [])
+    ? (messages[activeConversation._id] || [])
     : []
 
   const anyTyping = activeConversation
@@ -101,10 +111,12 @@ export default function Chat() {
     setActiveConversation(conv)
     joinConversation(conv._id)
     if (!messages[conv._id]) {
-      api.get(`/chat/conversations/${conv._id}/messages`)
-        .then(({ data }) => setMessages(conv._id, data.messages))
-        .catch(() => setMessages(conv._id, MOCK_MESSAGES[conv._id] || []))
+      api.get(`/messages/conversations/${conv._id}`)
+        .then(({ data }) => setMessages(conv._id, data.messages || []))
+        .catch(() => setMessages(conv._id, []))
     }
+    // Mark as read
+    api.put(`/messages/conversations/${conv._id}/read`).catch(() => {})
   }
 
   function handleInputChange(e) {
@@ -116,20 +128,33 @@ export default function Chat() {
     }
   }
 
-  function handleSend(e) {
+  async function handleSend(e) {
     e.preventDefault()
-    if (!input.trim() || !activeConversation) return
-    const msg = {
-      _id: `local-${Date.now()}`,
-      content: input.trim(),
-      sender: 'user',
-      createdAt: new Date().toISOString(),
-      conversationId: activeConversation._id,
-    }
-    addMessage(activeConversation._id, msg)
-    sendMessage({ conversationId: activeConversation._id, content: input.trim() })
+    if (!input.trim() || !activeConversation || sending) return
+
+    const text = input.trim()
     setInput('')
-    sendTyping(activeConversation._id, false)
+    setSending(true)
+
+    // Optimistic message
+    const optimistic = {
+      _id: `local-${Date.now()}`,
+      content: text,
+      sender: 'user',
+      senderId: { _id: user?.id },
+      createdAt: new Date().toISOString(),
+    }
+    addMessage(activeConversation._id, optimistic)
+
+    try {
+      const receiverId = activeConversation.vendor?._id
+      await api.post('/messages/send', { receiverId, content: text })
+    } catch {
+      // message already shown optimistically; ignore send failure silently
+    } finally {
+      setSending(false)
+      sendTyping(activeConversation._id, false)
+    }
   }
 
   return (
@@ -174,12 +199,15 @@ export default function Chat() {
                       style={isActive ? { background: '#FFF3EF' } : {}}
                     >
                       <div className="relative shrink-0">
-                        <img src={conv.vendor?.avatar} alt="" className="w-10 h-10 rounded-full object-cover" />
+                        {conv.vendor?.avatar ? (
+                          <img src={conv.vendor.avatar} alt="" className="w-10 h-10 rounded-full object-cover" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-[#F06138] text-white text-sm font-bold flex items-center justify-center">
+                            {conv.vendor?.businessName?.charAt(0) || '?'}
+                          </div>
+                        )}
                         {conv.unreadCount > 0 && (
-                          <span
-                            className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-[10px] font-bold flex items-center justify-center"
-                            style={{ background: '#F06138', color: '#fff' }}
-                          >
+                          <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-[10px] font-bold flex items-center justify-center" style={{ background: '#F06138', color: '#fff' }}>
                             {conv.unreadCount}
                           </span>
                         )}
@@ -210,10 +238,16 @@ export default function Chat() {
               <>
                 {/* Header */}
                 <div className="flex items-center gap-3 px-5 py-4 border-b border-black/5" style={{ background: '#FFFEF5' }}>
-                  <img src={activeConversation.vendor?.avatar} alt="" className="w-9 h-9 rounded-full object-cover" />
+                  {activeConversation.vendor?.avatar ? (
+                    <img src={activeConversation.vendor.avatar} alt="" className="w-9 h-9 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-[#F06138] text-white text-sm font-bold flex items-center justify-center shrink-0">
+                      {activeConversation.vendor?.businessName?.charAt(0) || '?'}
+                    </div>
+                  )}
                   <div>
                     <p className="font-lato font-semibold text-[#101828] text-sm">{activeConversation.vendor?.businessName}</p>
-                    <p className="font-lato text-xs text-[#016630]">Online</p>
+                    <p className="font-lato text-xs text-[#016630]">Vendor</p>
                   </div>
                 </div>
 
@@ -221,23 +255,23 @@ export default function Chat() {
                 <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
                   <AnimatePresence initial={false}>
                     {activeMessages.map((msg) => {
-                      const isMine = msg.sender === 'user'
+                      const mine = isMine(msg, user?.id)
                       return (
                         <motion.div
                           key={msg._id}
                           initial={{ opacity: 0, y: 8 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}
+                          className={`flex ${mine ? 'justify-end' : 'justify-start'}`}
                         >
                           <div
                             className="max-w-[70%] px-4 py-2.5 rounded-2xl font-lato text-sm"
-                            style={isMine
+                            style={mine
                               ? { background: '#F06138', color: '#fff', borderBottomRightRadius: '4px' }
                               : { background: '#FEFDEB', color: '#101828', border: '1px solid rgba(139,67,50,0.1)', borderBottomLeftRadius: '4px' }
                             }
                           >
                             {msg.content}
-                            <p className={`text-[10px] mt-1 ${isMine ? 'text-white/70' : 'text-[#6A6A6A]'}`}>
+                            <p className={`text-[10px] mt-1 ${mine ? 'text-white/70' : 'text-[#6A6A6A]'}`}>
                               {new Date(msg.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
                             </p>
                           </div>
@@ -248,10 +282,7 @@ export default function Chat() {
 
                   {anyTyping && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
-                      <div
-                        className="px-4 py-3 rounded-2xl flex gap-1 items-center"
-                        style={{ background: '#FEFDEB', border: '1px solid rgba(139,67,50,0.1)' }}
-                      >
+                      <div className="px-4 py-3 rounded-2xl flex gap-1 items-center" style={{ background: '#FEFDEB', border: '1px solid rgba(139,67,50,0.1)' }}>
                         {[0, 1, 2].map((i) => (
                           <motion.span
                             key={i}
@@ -277,7 +308,7 @@ export default function Chat() {
                   />
                   <motion.button
                     type="submit"
-                    disabled={!input.trim()}
+                    disabled={!input.trim() || sending}
                     whileTap={{ scale: 0.94 }}
                     className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 disabled:opacity-40 transition-opacity"
                     style={{ background: '#F06138' }}

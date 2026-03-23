@@ -11,7 +11,7 @@ import { pageVariants } from '../../animations/pageTransitions'
 import api from '../../services/api'
 
 const serviceSchema = z.object({
-  name: z.string().min(3, 'Service name required'),
+  title: z.string().min(3, 'Service name required'),
   description: z.string().min(10, 'Add a short description'),
   price: z.coerce.number().min(500, 'Minimum price is ₹500'),
   duration: z.string().min(1, 'Duration required'),
@@ -25,7 +25,7 @@ function ServiceModal({ service, onClose, onSaved }) {
   const form = useForm({
     resolver: zodResolver(serviceSchema),
     defaultValues: service
-      ? { name: service.name, description: service.description, price: service.price, duration: service.duration }
+      ? { title: service.title, description: service.description, price: service.price, duration: service.duration }
       : {},
   })
 
@@ -83,8 +83,8 @@ function ServiceModal({ service, onClose, onSaved }) {
         <form onSubmit={form.handleSubmit((d) => mutation.mutate({ ...d, images }))} className="space-y-4">
           <div>
             <label className="block font-lato font-medium text-sm text-[#364153] mb-1.5">Service Name</label>
-            <input type="text" className="input-field" {...form.register('name')} />
-            {form.formState.errors.name && <p className="mt-1 text-xs text-red-500">{form.formState.errors.name.message}</p>}
+            <input type="text" className="input-field" {...form.register('title')} />
+            {form.formState.errors.title && <p className="mt-1 text-xs text-red-500">{form.formState.errors.title.message}</p>}
           </div>
           <div>
             <label className="block font-lato font-medium text-sm text-[#364153] mb-1.5">Description</label>
@@ -219,7 +219,7 @@ export default function VendorServices() {
                   {/* Service image */}
                   {svc.images?.length > 0 ? (
                     <div className="h-36 w-full overflow-hidden">
-                      <img src={svc.images[0]} alt={svc.name} className="w-full h-full object-cover" />
+                      <img src={svc.images[0]} alt={svc.title} className="w-full h-full object-cover" />
                     </div>
                   ) : (
                     <div className="h-36 w-full flex items-center justify-center" style={{ background: '#FFF3EF' }}>
@@ -229,7 +229,7 @@ export default function VendorServices() {
 
                   <div className="p-5 flex flex-col flex-1">
                     <div className="flex items-start justify-between mb-3">
-                      <h3 className="font-lato font-bold text-[#101828] text-sm leading-tight flex-1 pr-2">{svc.name}</h3>
+                      <h3 className="font-lato font-bold text-[#101828] text-sm leading-tight flex-1 pr-2">{svc.title}</h3>
                       <div className="flex gap-1 shrink-0">
                         <button onClick={() => setModal(svc)} className="p-1.5 rounded-lg hover:bg-[#FFF3EF] text-[#6A6A6A] hover:text-[#F06138] transition-colors">
                           <Pencil size={14} />

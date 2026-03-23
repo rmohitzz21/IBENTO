@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   ChevronLeft, Calendar, Users, MapPin, FileText,
-  Phone, Mail, CheckCircle2, XCircle, IndianRupee, MessageSquare,
+  Phone, Mail, CheckCircle2, XCircle, IndianRupee, MessageSquare, Loader2,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import VendorSidebar from '../../components/shared/VendorSidebar'
@@ -73,6 +73,22 @@ export default function VendorBookingDetail() {
     mutationFn: () => api.put(`/bookings/${id}/reject`, { reason: 'Vendor rejected' }),
     onSuccess: () => { toast.success('Booking rejected.'); qc.invalidateQueries(['vendor-booking', id]) },
     onError: () => toast.error('Could not reject booking.'),
+  })
+
+  const messageMutation = useMutation({
+    mutationFn: () => api.post('/messages/send', {
+      receiverId: rawBooking?.userId?._id,
+      content: `Hi! I'd like to discuss your booking (${booking.bookingNumber ? '#' + booking.bookingNumber : ''}).`,
+    }),
+    onSuccess: () => {
+      navigate('/vendor/chat', {
+        state: {
+          userId: rawBooking?.userId?._id,
+          customerName: booking.customer?.name,
+        },
+      })
+    },
+    onError: () => toast.error('Could not open chat.'),
   })
 
   return (
@@ -183,8 +199,16 @@ export default function VendorBookingDetail() {
               </>
             )}
 
-            <button className="w-full py-3 rounded-xl font-lato font-semibold text-sm border border-[rgba(139,67,50,0.2)] text-[#364153] hover:bg-[#FFF3EF] transition-colors flex items-center justify-center gap-2">
-              <MessageSquare size={15} /> Message Customer
+            <button
+              onClick={() => !messageMutation.isPending && messageMutation.mutate()}
+              disabled={messageMutation.isPending || !rawBooking?.userId?._id}
+              className="w-full py-3 rounded-xl font-lato font-semibold text-sm border border-[rgba(139,67,50,0.2)] text-[#364153] hover:bg-[#FFF3EF] transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+            >
+              {messageMutation.isPending
+                ? <Loader2 size={15} className="animate-spin" />
+                : <MessageSquare size={15} />
+              }
+              {messageMutation.isPending ? 'Opening chat…' : 'Message Customer'}
             </button>
 
             <div className="p-4 rounded-xl text-xs font-lato text-[#6A6A6A] bg-white border border-black/5">

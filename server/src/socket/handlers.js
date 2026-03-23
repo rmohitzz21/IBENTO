@@ -37,7 +37,7 @@ export default function handlers(io, socket) {
     }
   })
 
-  // Typing indicators
+  // Typing indicators — handle both naming conventions
   socket.on('typing:start', (data) => {
     socket.to(`conversation-${data.conversationId}`).emit('typing:indicator', {
       userId: socket.userId,
@@ -49,6 +49,14 @@ export default function handlers(io, socket) {
     socket.to(`conversation-${data.conversationId}`).emit('typing:indicator', {
       userId: socket.userId,
       isTyping: false,
+    })
+  })
+
+  // Client emits 'typing' with { conversationId, isTyping }
+  socket.on('typing', (data) => {
+    socket.to(`conversation-${data.conversationId}`).emit('typing:indicator', {
+      userId: socket.userId,
+      isTyping: data.isTyping,
     })
   })
 
@@ -73,9 +81,15 @@ export default function handlers(io, socket) {
     }
   })
 
-  // Join a conversation room
+  // Join a conversation room — handle both naming conventions
   socket.on('join:conversation', (conversationId) => {
     socket.join(`conversation-${conversationId}`)
+  })
+
+  // Client emits 'conversation:join' with { conversationId }
+  socket.on('conversation:join', (data) => {
+    const id = data?.conversationId || data
+    socket.join(`conversation-${id}`)
   })
 
   // Leave a conversation room
