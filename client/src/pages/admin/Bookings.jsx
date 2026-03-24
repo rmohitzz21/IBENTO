@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import toast from 'react-hot-toast'
 import { Search } from 'lucide-react'
 import AdminSidebar from '../../components/shared/AdminSidebar'
 import api from '../../services/api'
@@ -24,6 +25,7 @@ const statusBadge = {
 export default function AdminBookings() {
   const [tab, setTab] = useState('all')
   const [search, setSearch] = useState('')
+  const qc = useQueryClient()
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-bookings'],
@@ -31,6 +33,17 @@ export default function AdminBookings() {
   })
 
   const bookings = data || MOCK
+
+  const updateStatus = useMutation({
+    mutationFn: async ({ id, action }) => api.put(`/bookings/${id}/${action}`),
+    onSuccess: () => {
+      toast.success('Booking status updated')
+      qc.invalidateQueries(['admin-bookings'])
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to update status')
+    }
+  })
 
   const filtered = bookings.filter(b => {
     const matchTab = tab === 'all' || b.status === tab
@@ -78,7 +91,7 @@ export default function AdminBookings() {
                 <table className="w-full text-sm font-lato">
                   <thead>
                     <tr className="border-b border-gray-100 bg-gray-50">
-                      {['Booking', 'Customer', 'Vendor', 'Event', 'Date', 'Amount', 'Status'].map(h => (
+                      {['Booking', 'Customer', 'Vendor', 'Event', 'Date', 'Amount', 'Status', 'Actions'].map(h => (
                         <th key={h} className="text-left px-6 py-3 text-[#6A6A6A] font-medium">{h}</th>
                       ))}
                     </tr>
@@ -97,9 +110,27 @@ export default function AdminBookings() {
                           </td>
                           <td className="px-6 py-4 font-medium text-[#1A1A1A]">₹{b.totalAmount?.toLocaleString('en-IN')}</td>
                           <td className="px-6 py-4">
-                            <span className="px-2.5 py-1 rounded-full text-xs font-semibold capitalize" style={{ background: sb.bg, color: sb.color }}>
+                            <span className="px-2.5 py-1 rounded-full text-xs font-semibold capitalize whitespace-nowrap" style={{ background: sb.bg, color: sb.color }}>
                               {b.status}
                             </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <select
+                              className="text-xs border-gray-200 rounded p-1.5 font-lato text-[#101828] bg-white cursor-pointer hover:border-[#F06138] transition-colors focus:outline-none focus:ring-1 focus:ring-[#F06138]"
+                              value=""
+                              onChange={(e) => {
+                                if (e.target.value) {
+                                  updateStatus.mutate({ id: b._id, action: e.target.value })
+                                }
+                              }}
+                              disabled={updateStatus.isPending || ['completed', 'cancelled', 'rejected'].includes(b.status)}
+                            >
+                              <option value="" disabled hidden>Manage</option>
+                              {b.status === 'pending' && <option value="accept">Accept</option>}
+                              {b.status === 'pending' && <option value="reject">Reject</option>}
+                              {b.status === 'confirmed' && <option value="complete">Complete</option>}
+                              {['pending', 'confirmed'].includes(b.status) && <option value="cancel">Cancel</option>}
+                            </select>
                           </td>
                         </tr>
                       )

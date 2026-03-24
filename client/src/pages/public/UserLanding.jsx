@@ -125,26 +125,25 @@ export default function UserLanding() {
               Discover 500+ verified vendors for weddings, birthdays, corporate events and more — transparent pricing, zero surprises.
             </motion.p>
 
-            {/* Search */}
+            {/* Premium Glass Search */}
             <motion.form
               variants={fadeInUp}
               onSubmit={handleSearch}
-              className="flex items-center max-w-2xl mx-auto rounded-2xl overflow-hidden mb-5"
-              style={{ background: 'white', boxShadow: '0 20px 60px rgba(0,0,0,0.35)' }}
+              className="flex items-center max-w-2xl mx-auto rounded-3xl overflow-hidden mb-6 p-1.5 transition-all duration-300 hover:bg-white/20 focus-within:bg-white/25 focus-within:ring-2 focus-within:ring-white/50"
+              style={{ background: 'rgba(255, 255, 255, 0.12)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.25)', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}
             >
               <div className="flex items-center gap-3 flex-1 px-5">
-                <Search size={20} className="text-gray-400 shrink-0" />
+                <Search size={22} className="text-white/80 shrink-0" />
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search for vendors, services, cities…"
-                  className="flex-1 py-4 font-lato text-[#101828] placeholder-gray-400 focus:outline-none text-sm bg-transparent"
+                  className="flex-1 py-4 font-lato text-white placeholder-white/60 focus:outline-none text-base bg-transparent"
                 />
               </div>
               <button
                 type="submit"
-                className="shrink-0 px-8 py-4 font-lato font-semibold text-sm hover:opacity-90 transition-opacity"
-                style={{ background: '#F06138', color: '#FDFAD6' }}
+                className="shrink-0 px-8 py-3.5 rounded-2xl font-lato font-bold text-sm bg-white text-[#F06138] hover:bg-[#FDFAD6] hover:scale-105 transition-all shadow-[0_4px_14px_rgba(255,255,255,0.3)]"
               >
                 Search
               </button>
@@ -232,18 +231,19 @@ export default function UserLanding() {
               >
                 <Link
                   to={`/browse?category=${encodeURIComponent(cat.label)}`}
-                  className="block rounded-2xl overflow-hidden border border-black/5 hover:shadow-lg transition-all group"
+                  className="block rounded-[20px] overflow-hidden card card-hover group"
                 >
-                  <div className="relative h-28 overflow-hidden">
+                  <div className="relative h-32 overflow-hidden">
                     <img
                       src={`https://images.unsplash.com/${cat.img}?w=320&q=75`}
                       alt={cat.label}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-500" />
                   </div>
-                  <div className="py-3 text-center" style={{ background: cat.color }}>
-                    <p className="font-lato font-semibold text-[#101828] text-sm">{cat.label}</p>
+                  <div className="py-3.5 text-center flex items-center justify-center gap-2 group-hover:bg-[#FFF3EF] transition-colors duration-300">
+                    <p className="font-lato font-bold text-[#101828] text-sm group-hover:text-[#F06138] transition-colors">{cat.label}</p>
+                    <ArrowRight size={14} className="text-[#F06138] opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
                   </div>
                 </Link>
               </motion.div>
@@ -280,45 +280,50 @@ export default function UserLanding() {
                 transition={{ delay: i * 0.08, duration: 0.45 }}
                 whileHover={{ y: -5 }}
               >
-                <div className="rounded-2xl overflow-hidden border border-black/5 bg-white shadow-sm hover:shadow-xl transition-all h-full flex flex-col">
-                  <div className="relative h-48 overflow-hidden shrink-0">
+                <div className="card card-hover h-full flex flex-col group overflow-hidden border-0">
+                  <div className="relative h-56 overflow-hidden shrink-0">
                     <img
                       src={`https://images.unsplash.com/${v.img}?w=400&q=80`}
                       alt={v.name}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                     />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     <span
-                      className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-xs font-lato font-semibold"
-                      style={{ background: '#F06138', color: '#FDFAD6' }}
+                      className="absolute top-4 left-4 px-3 py-1 rounded-full text-[10px] font-lato font-extrabold uppercase tracking-wide shadow-md"
+                      style={{ background: 'linear-gradient(135deg, #F06138, #8B4332)', color: '#FDFAD6' }}
                     >
                       {v.badge}
                     </span>
                   </div>
-                  <div className="p-4 flex flex-col flex-1">
-                    <h3 className="font-lato font-semibold text-[#101828] text-sm truncate">{v.name}</h3>
-                    <p className="font-lato text-[#6A6A6A] text-xs mt-0.5">{v.category}</p>
-                    <div className="flex items-center gap-1 mt-1.5">
-                      <MapPin size={12} className="text-[#6A6A6A] shrink-0" />
-                      <span className="font-lato text-xs text-[#6A6A6A]">{v.city}</span>
+                  <div className="p-5 flex flex-col flex-1 bg-white relative z-10 transition-transform duration-500 group-hover:-translate-y-1 rounded-t-2xl -mt-4">
+                    <h3 className="font-lato font-bold text-[#101828] text-[15px] truncate group-hover:text-[#F06138] transition-colors">{v.name}</h3>
+                    <p className="font-lato text-[#6A6A6A] text-[13px] mt-1">{v.category}</p>
+                    <div className="flex items-center gap-1.5 mt-2.5">
+                      <MapPin size={13} className="text-[#6A6A6A] shrink-0" />
+                      <span className="font-lato text-[13px] text-[#6A6A6A]">{v.city}</span>
                     </div>
-                    <div className="flex items-center gap-0.5 mt-1.5">
-                      {Array.from({ length: 5 }).map((_, idx) => (
+                    <div className="flex items-center gap-1 mt-2.5 p-1.5 rounded-lg w-max" style={{ background: '#FFFEF5', border: '1px solid rgba(139,67,50,0.08)' }}>
+                      {Array.from({ length: 1 }).map((_, idx) => (
                         <Star
                           key={idx}
-                          size={12}
-                          className={idx < Math.round(v.rating) ? 'text-[#F06138] fill-[#F06138]' : 'text-gray-200 fill-gray-200'}
+                          size={13}
+                          className="text-[#F06138] fill-[#F06138]"
                         />
                       ))}
-                      <span className="font-lato text-xs text-[#6A6A6A] ml-1">{v.rating} ({v.reviews})</span>
+                      <span className="font-lato font-bold text-[13px] text-[#101828]">{v.rating}</span>
+                      <span className="font-lato text-xs text-[#6A6A6A]">({v.reviews})</span>
                     </div>
-                    <div className="flex items-center justify-between mt-auto pt-3 border-t border-black/5 mt-3">
-                      <span className="font-lato font-bold text-[#8B4332] text-sm">from {v.price}</span>
+                    <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100 mt-4">
+                      <div>
+                        <span className="block font-lato text-[10px] uppercase text-[#6A6A6A] tracking-wider mb-0.5">Starting From</span>
+                        <span className="font-filson font-black text-[#8B4332] text-base">{v.price}</span>
+                      </div>
                       <Link
                         to="/login"
                         state={{ from: `/vendors/${v.id}` }}
-                        className="text-xs font-lato font-semibold text-[#F06138] hover:underline"
+                        className="text-xs font-lato font-bold text-[#F06138] hover:text-[#8B4332] transition-colors flex items-center gap-1"
                       >
-                        Sign in to book →
+                        Book <ArrowRight size={12} />
                       </Link>
                     </div>
                   </div>
@@ -352,20 +357,20 @@ export default function UserLanding() {
             {STEPS.map((s, i) => (
               <motion.div
                 key={s.num}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.12, duration: 0.5 }}
-                className="text-center"
+                initial={{ opacity: 0, scale: 0.95, y: 30 }}
+                whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                viewport={{ once: true, margin: '-50px' }}
+                transition={{ delay: i * 0.15, duration: 0.6, type: "spring" }}
+                className="text-center group"
               >
                 <div
-                  className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5 mx-auto font-filson font-black text-2xl"
-                  style={{ background: 'linear-gradient(135deg, #F06138, #F54900)', color: 'white' }}
+                  className="w-20 h-20 rounded-[1.5rem] flex items-center justify-center mb-6 mx-auto font-filson font-black text-2xl transition-transform duration-500 group-hover:-translate-y-2 group-hover:scale-110 shadow-[0_12px_24px_rgba(240,97,56,0.25)]"
+                  style={{ background: 'linear-gradient(135deg, #F06138, #8B4332)', color: 'white' }}
                 >
                   {s.num}
                 </div>
-                <h3 className="font-filson font-bold text-[#101828] text-xl mb-3">{s.title}</h3>
-                <p className="font-lato text-[#6A6A6A] text-sm leading-relaxed">{s.desc}</p>
+                <h3 className="font-filson font-bold text-[#101828] text-xl mb-3 group-hover:text-[#F06138] transition-colors">{s.title}</h3>
+                <p className="font-lato text-[#6A6A6A] text-[15px] leading-relaxed max-w-xs mx-auto">{s.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -407,10 +412,9 @@ export default function UserLanding() {
                 </p>
                 <Link
                   to="/signup"
-                  className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl font-lato font-semibold text-sm hover:opacity-90 transition-opacity"
-                  style={{ background: '#F06138', color: '#FDFAD6' }}
+                  className="btn-primary w-fit text-base px-8 py-4 shadow-[0_8px_24px_rgba(240,97,56,0.35)] hover:shadow-[0_12px_32px_rgba(240,97,56,0.45)]"
                 >
-                  Try it free — it's quick <Sparkles size={15} />
+                  Try it free — it's quick <Sparkles size={16} />
                 </Link>
               </div>
 
@@ -515,16 +519,15 @@ export default function UserLanding() {
               <div className="shrink-0 flex flex-col sm:flex-row md:flex-col gap-3 w-full md:w-auto">
                 <Link
                   to="/become-vendor"
-                  className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl font-lato font-semibold text-sm hover:opacity-90 transition-opacity"
-                  style={{ background: '#F06138', color: '#FDFAD6' }}
+                  className="btn-primary text-base"
                 >
-                  See How It Works <ChevronRight size={16} />
+                  See How It Works <ChevronRight size={18} />
                 </Link>
                 <Link
                   to="/vendor/apply"
-                  className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl font-lato font-semibold text-sm border border-white/30 text-white hover:bg-white/10 transition-colors"
+                  className="btn-outline border-white text-white hover:bg-white hover:text-[#8B4332] text-base"
                 >
-                  Apply Now <ArrowRight size={16} />
+                  Apply Now <ArrowRight size={18} />
                 </Link>
               </div>
             </div>
@@ -557,14 +560,14 @@ export default function UserLanding() {
               <div className="flex flex-wrap gap-4 justify-center">
                 <Link
                   to="/signup"
-                  className="px-8 py-3.5 rounded-xl font-lato font-semibold text-sm transition-all hover:scale-[1.02]"
-                  style={{ background: '#FDFAD6', color: '#8B4332' }}
+                  className="btn-primary text-base px-8 py-4 transform hover:scale-105"
+                  style={{ background: '#FDFAD6', color: '#8B4332', boxShadow: '0 8px 24px rgba(0,0,0,0.15)' }}
                 >
                   Create Free Account
                 </Link>
                 <Link
                   to="/browse"
-                  className="px-8 py-3.5 rounded-xl font-lato font-semibold text-sm border border-white/40 text-white hover:bg-white/10 transition-all"
+                  className="btn-outline text-base px-8 py-4 border-white text-white hover:bg-white/10 hover:text-white transform hover:scale-105"
                 >
                   Browse Vendors
                 </Link>

@@ -1,15 +1,16 @@
+import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   ChevronLeft, Calendar, Users, MapPin, FileText,
   Download, MessageSquare, XCircle, CheckCircle,
-  Clock, IndianRupee, Phone, Share2, BadgeCheck,
+  Clock, IndianRupee, Phone, Share2, BadgeCheck, Star
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import UserNavbar from '../../components/shared/UserNavbar'
 import Footer from '../../components/shared/Footer'
-import { getBooking, cancelBooking, getInvoice } from '../../services/bookings'
+import { getBooking, cancelBooking, getInvoice, createReview } from '../../services/bookings'
 import { pageVariants } from '../../animations/pageTransitions'
 
 const STATUS_CONFIG = {
@@ -57,6 +58,9 @@ export default function BookingDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const qc = useQueryClient()
+  const [reviewModal, setReviewModal] = useState(false)
+  const [rating, setRating] = useState(5)
+  const [comment, setComment] = useState('')
 
   const { data, isLoading } = useQuery({
     queryKey: ['booking', id],
@@ -74,6 +78,16 @@ export default function BookingDetail() {
       qc.invalidateQueries(['my-bookings'])
     },
     onError: (err) => toast.error(err?.response?.data?.message || 'Cancellation failed.'),
+  })
+
+  const reviewMutation = useMutation({
+    mutationFn: () => createReview({ bookingId: id, rating, comment }),
+    onSuccess: () => {
+      toast.success('Review submitted successfully!')
+      setReviewModal(false)
+      qc.invalidateQueries(['booking', id])
+    },
+    onError: (err) => toast.error(err?.response?.data?.message || 'Failed to submit review.'),
   })
 
   async function downloadInvoice() {
@@ -316,6 +330,16 @@ export default function BookingDetail() {
               <MessageSquare size={15} /> Message Vendor
             </Link>
 
+            {booking.status === 'completed' && !booking.review && (
+              <button
+                onClick={() => setReviewModal(true)}
+                className="w-full py-3 rounded-xl font-lato font-semibold text-sm transition-all flex items-center justify-center gap-2 text-center"
+                style={{ background: '#F06138', color: '#FDFAD6' }}
+              >
+                <Star size={15} /> Write a Review
+              </button>
+            )}
+
             {canCancel && (
               <button
                 onClick={() => { if (window.confirm('Are you sure you want to cancel this booking?')) cancelMutation.mutate() }}
@@ -345,6 +369,61 @@ export default function BookingDetail() {
           </div>
         </div>
       </div>
+      
+      {/* Review Modal */}
+      {reviewModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl w-full max-w-lg p-6 overflow-hidden shadow-2xl"
+          >
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="font-filson font-bold text-xl text-[#101828]">Write a Review</h2>
+              <button onClick={() => setReviewModal(false)} className="text-gray-400 hover:text-gray-600"><XCircle size={20} /></button>
+            </div>
+            
+            <div className="mb-5">
+              <p className="font-lato font-semibold text-sm text-[#364153] mb-2">Rating</p>
+              <div className="flex gap-1.5">
+                {[1, 2, 3, 4, 5].map((starEl) => (
+                  <button key={starEl} onClick={() => setRating(starEl)} className="focus:outline-none">
+                    <Star size={24} className={starEl <= rating ? 'text-[#F06138] fill-[#F06138]' : 'text-gray-200 fill-gray-200'} />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <p className="font-lato font-semibold text-sm text-[#364153] mb-2">Comment (Optional)</p>
+              <textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Share your experience working with this vendor..."
+                className="w-full p-3 rounded-xl border border-gray-200 text-sm font-lato focus:border-[#F06138] focus:outline-none focus:ring-1 focus:ring-[#F06138] resize-none h-28"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setReviewModal(false)}
+                className="px-5 py-2.5 rounded-xl font-lato font-semibold text-sm text-[#364153] bg-gray-100 hover:bg-gray-200 transition-colors"
+                disabled={reviewMutation.isPending}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => reviewMutation.mutate()}
+                disabled={reviewMutation.isPending}
+                className="px-5 py-2.5 rounded-xl font-lato font-semibold text-sm transition-all"
+                style={{ background: '#F06138', color: '#FDFAD6' }}
+              >
+                {reviewMutation.isPending ? 'Submitting...' : 'Submit Review'}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
 
       <Footer />
     </motion.div>

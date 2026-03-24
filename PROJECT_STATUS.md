@@ -1,7 +1,7 @@
 # iBento — Project Status & Pre-Change Checklist
 
 > **Always read this file before making any changes.**
-> Update it after each session. Last updated: 2026-03-18
+> Update it after each session. Last updated: 2026-03-23
 
 ---
 
@@ -36,26 +36,21 @@
 ### ~~2. Register route requires password field~~ ✅ FIXED 2026-03-18
 ~~`auth.routes.js` `/register` had `password.isLength({min:8})` — removed entirely~~
 
-### 3. Socket.io event name mismatch (chat is broken)
-**Client sends → Server expects:**
-| Client (`useSocket.js`) | Server (`handlers.js`) | Status |
-|---|---|---|
-| `conversation:join` | `join:conversation` | ❌ MISMATCH |
-| `message:send` | `message:send` | ✅ |
-| `typing` | `typing:start` / `typing:stop` | ❌ MISMATCH |
+### ~~3. Socket.io event name mismatch (chat is broken)~~ ✅ FIXED 2026-03-23
+`useSocket.js` now uses correct server-side event names:
+| Event | Client (`useSocket.js`) | Server (`handlers.js`) | Status |
+|---|---|---|---|
+| Join room | `join:conversation` | `join:conversation` | ✅ |
+| Send message | `message:send` | `message:send` | ✅ |
+| Typing | `typing:start` / `typing:stop` | `typing:start` / `typing:stop` | ✅ |
 
-**Fix:** Either update `useSocket.js` to use server event names, or update `handlers.js` to match client names. Recommend fixing `useSocket.js`:
-```js
-// conversation:join → join:conversation
-emit('join:conversation', { conversationId })
-// typing → typing:start / typing:stop
-emit(isTyping ? 'typing:start' : 'typing:stop', { conversationId })
-```
+Singleton pattern implemented — socket persists across component mounts/unmounts. Auth-token-aware reconnection works correctly.
 
 ### 4. Razorpay is disabled on the server
 **File:** `server/src/config/razorpay.js` exports `null`
-**Impact:** Payment page UI exists and Razorpay hook works, but server cannot create orders or verify payments.
+**Impact:** Payment page UI exists and shows a "coming soon" notice. Server cannot create orders or verify payments.
 **Fix:** Set real `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` in `server/.env` and enable in config.
+**Client:** `PaymentPage.jsx` has `const PAYMENTS_ENABLED = false` — flip this after enabling server config.
 
 ---
 
@@ -134,9 +129,10 @@ models/     User, Vendor, Service, Booking, Review, Conversation, Message,
             Notification, OTP (TTL auto-delete), Cart, Category, Combo, Withdrawal
 
 middleware/ protect (JWT), authorize(roles), errorHandler, rateLimiter (3 tiers), upload, validate
+            vendorStatus.js — requireApprovedVendor (403 if pending/rejected/suspended)
 config/     db (Mongoose), cloudinary, razorpay (DISABLED)
 socket/     handlers.js — real-time messaging + typing indicators + booking notifications
-services/   email.service (Nodemailer), otp.service (6-digit, 10-min TTL, 3 attempts max)
+services/   email.service (Nodemailer), otp.service (6-digit, 10-min TTL, 3 attempts max, bcrypt-hashed)
 ```
 
 ### Rate Limits (server)
@@ -161,6 +157,7 @@ services/   email.service (Nodemailer), otp.service (6-digit, 10-min TTL, 3 atte
 | `typing:indicator` | Server → Client | Broadcast typing status |
 | `booking:notify` | Server → Client | New booking notification |
 | `booking:update` | Server → Client | Booking status change |
+| `notification:push` | Server → Client | Real-time notification delivery |
 
 ### Key API Endpoints
 | Method | Path | Auth | Description |
@@ -175,6 +172,9 @@ services/   email.service (Nodemailer), otp.service (6-digit, 10-min TTL, 3 atte
 | GET | `/api/vendors/:id/services` | — | Vendor services |
 | GET | `/api/vendors/:id/reviews` | — | Vendor reviews |
 | GET | `/api/vendors/dashboard` | vendor/admin | Dashboard stats |
+| GET | `/api/vendors/services` | vendor | Authenticated vendor's own services |
+| GET | `/api/vendors/calendar` | vendor | Vendor blocked dates |
+| PUT | `/api/vendors/availability` | vendor | Update availability + blockedDates |
 | POST | `/api/vendors/apply` | any | Apply as vendor |
 | POST | `/api/bookings` | user | Create booking |
 | GET | `/api/bookings/my` | user | My bookings |
@@ -183,48 +183,101 @@ services/   email.service (Nodemailer), otp.service (6-digit, 10-min TTL, 3 atte
 | POST | `/api/payments/verify` | user | Verify payment signature |
 | POST | `/api/payments/webhook` | — | Razorpay webhook (no auth) |
 | GET | `/api/messages/conversations` | any | List conversations |
+| GET | `/api/messages/conversations/:id` | any | Get messages in conversation |
+| PUT | `/api/messages/conversations/:id/read` | any | Mark conversation as read |
 | POST | `/api/messages/send` | any | Send message (HTTP fallback) |
+| GET | `/api/notifications` | any | Get notifications |
+| PUT | `/api/notifications/mark-all-read` | any | Mark all notifications read |
+| PUT | `/api/notifications/:id/read` | any | Mark single notification read |
 | POST | `/api/uploads/single` | any | Upload to Cloudinary |
 | GET | `/api/admin/dashboard` | admin | Platform stats |
+| GET | `/api/admin/vendors` | admin | All vendors with filters |
 | PUT | `/api/admin/vendors/:id/approve` | admin | Approve vendor |
+| PUT | `/api/admin/vendors/:id/reject` | admin | Reject vendor with reason |
+| PUT | `/api/admin/vendors/:id/suspend` | admin | Suspend vendor |
+| GET | `/api/admin/users` | admin | All users |
+| PUT | `/api/admin/users/:id/block` | admin | Block/unblock user |
+| GET | `/api/admin/bookings` | admin | All bookings |
+
+---
+
+## User ↔ Vendor ↔ Admin Interaction Map (Current State)
+
+### User → Vendor
+| Action | How | Status |
+|---|---|---|
+| Browse vendors | BrowsePage → `/api/vendors` with filters | ✅ Working |
+| View vendor profile | VendorProfile → `/api/vendors/:id` + services + reviews | ✅ Working |
+| Book a service | BookingForm → `POST /api/bookings` → BookingConfirm | ✅ Working |
+| Pay for booking | PaymentPage | ❌ Blocked (Razorpay disabled) |
+| Message vendor | Chat → `POST /api/messages/send` + Socket `message:send` | ✅ Working |
+| Add to wishlist | WishlistPage → real API via `data?.data?.wishlist` | ✅ Working |
+| Write review | No submit UI yet — can read reviews | ⚠️ Read-only |
+
+### Vendor → User
+| Action | How | Status |
+|---|---|---|
+| Receive booking | VendorBookings list → `/api/vendor/bookings` | ✅ Working |
+| Accept/Reject booking | VendorBookingDetail (individual row) | ✅ Working |
+| Reply to message | Vendor Chat → Socket + HTTP fallback | ✅ Working |
+| Block calendar dates | Availability → `PUT /api/vendors/availability` | ✅ Working |
+| Manage services | Services page → `/api/vendors/services` + image upload | ✅ Working |
+
+### Admin → All
+| Action | How | Status |
+|---|---|---|
+| Approve vendor | Admin Vendors → `PUT /api/admin/vendors/:id/approve` | ✅ Working |
+| Reject vendor | Admin Vendors → `PUT /api/admin/vendors/:id/reject` + reason | ✅ Working |
+| Suspend vendor | Admin Vendors → `PUT /api/admin/vendors/:id/suspend` | ✅ Working |
+| Block/Unblock user | Admin Users → `PUT /api/admin/users/:id/block` | ✅ Working |
+| View all bookings | Admin Bookings → read-only with filters | ✅ Working |
+| View platform stats | Admin Dashboard → `/api/admin/dashboard` | ✅ Working (real API, mock fallback) |
+| Manage payments/withdrawals | Admin Payments page | ✅ Working (Recharts) |
 
 ---
 
 ## Pages Status
 
-| Page | UI | Mock | Real API | Notes |
-|---|---|---|---|---|
-| Login | ✅ | — | ✅ | 2-step OTP; bugs #1+#2 now fixed |
-| Signup | ✅ | — | ✅ | Role toggle (user/vendor) |
-| VerifyOTP | ✅ | — | ✅ | Restores `from` redirect after OTP |
-| ForgotPassword | ✅ | — | ✅ | |
-| ResetPassword | ✅ | — | ✅ | |
-| VendorLanding (/) | ✅ | ✅ | Partial | |
-| UserLanding | ✅ | ✅ | Partial | |
-| BrowsePage | ✅ | ✅ | Partial | |
-| VendorDetail (public) | ✅ | ✅ | Partial | Book Now passes `from` to login |
-| Home (user) | ✅ | ✅ | Partial | Categories, trending, recent bookings |
-| Explore | ✅ | ✅ | Partial | |
-| VendorProfile (user) | ✅ | ✅ | Partial | Message now passes `?vendorId` |
-| BookingForm | ✅ | ✅ | ✅ | Submits to `/api/bookings` |
-| BookingConfirm | ✅ | ✅ | Partial | |
-| MyBookings | ✅ | ✅ | Partial | |
-| BookingDetail (user) | ✅ | ✅ | Partial | |
-| PaymentPage | ✅ | ✅ | Blocked | Razorpay disabled on server (bug #4) |
-| Chat (user) | ✅ | ✅ | Broken | Socket event names mismatched (bug #3) |
-| Notifications (user) | ✅ | ✅ | Partial | |
-| UserProfile | ✅ | ✅ | Partial | |
-| Wishlist | ✅ | ✅ | Partial | |
-| Vendor Dashboard | ✅ | ✅ | Partial | |
-| Vendor Bookings | ✅ | ✅ | Partial | |
-| Vendor Services | ✅ | ✅ | Partial | |
-| Vendor Profile | ✅ | ✅ | Partial | |
-| Vendor Availability | ✅ | ✅ | Partial | |
-| Vendor Earnings | ✅ | ✅ | Partial | Recharts wired |
-| Vendor Chat | ✅ | ✅ | Broken | Same socket mismatch as user Chat |
-| Vendor Apply | ✅ | — | ✅ | |
-| Admin Dashboard | ✅ | ✅ | Partial | |
-| Admin pages ×6 | ✅ | ✅ | Partial | Vendors, Users, Bookings, Payments, Reviews, Settings |
+| Page | UI | Real API | Notes |
+|---|---|---|---|
+| Login | ✅ | ✅ | 2-step OTP; email+password for admin |
+| Signup | ✅ | ✅ | Role toggle (user/vendor) |
+| VerifyOTP | ✅ | ✅ | Restores `from` redirect after OTP |
+| ForgotPassword | ✅ | ✅ | Shows "Enter Reset Code" button to /reset-password |
+| ResetPassword | ✅ | ✅ | OTP-based (email + otp + newPassword) |
+| VendorLanding (/) | ✅ | Partial | Smart root: redirects by auth/role |
+| UserLanding | ✅ | Partial | |
+| BrowsePage | ✅ | Partial | Filters work; API call wired |
+| VendorDetail (public) | ✅ | Partial | Book Now passes `from` to login |
+| Home (user) | ✅ | Partial | Categories, trending, recent bookings |
+| Explore | ✅ | Partial | |
+| VendorProfile (user) | ✅ | Partial | Message → Chat; Book Now → BookingForm |
+| BookingForm | ✅ | ✅ | Submits to `/api/bookings`; correct field names |
+| BookingConfirm | ✅ | ✅ | Confetti + booking summary + next steps |
+| MyBookings | ✅ | ✅ | Real API; tab/search filters |
+| BookingDetail (user) | ✅ | Partial | |
+| PaymentPage | ✅ | ❌ | `PAYMENTS_ENABLED=false`; shows "coming soon" UI |
+| Chat (user) | ✅ | ✅ | Socket + HTTP; typing indicators; read receipts |
+| Notifications (user) | ✅ | ✅ | Mark read; real-time via `notification:push` |
+| UserProfile | ✅ | Partial | |
+| Wishlist | ✅ | ✅ | Real API; no mock fallback |
+| Vendor Dashboard | ✅ | Partial | Stats from `/api/vendors/dashboard` |
+| Vendor Bookings | ✅ | ✅ | Real API; tab/search; links to detail |
+| Vendor BookingDetail | ✅ | ✅ | Accept/Reject actions |
+| Vendor Services | ✅ | ✅ | Image upload (up to 5 per service via Cloudinary) |
+| Vendor Profile | ✅ | ✅ | Avatar upload via `/api/users/avatar` |
+| Vendor Availability | ✅ | ✅ | Calendar block/unblock; `isAvailable` toggle |
+| Vendor Earnings | ✅ | Partial | Recharts wired |
+| Vendor Chat | ✅ | ✅ | Socket + HTTP; can initiate conversations |
+| Vendor Notifications | ✅ | ✅ | Mark read; real-time |
+| Vendor Apply | ✅ | ✅ | 4-step: business → details → KYC/bank → review |
+| Admin Dashboard | ✅ | ✅ | Real API; mock fallback; pending approvals |
+| Admin Vendors | ✅ | ✅ | Approve / Reject (with reason) / Suspend |
+| Admin Users | ✅ | ✅ | Block/Unblock; role filter |
+| Admin Bookings | ✅ | ✅ | Read-only; status/search filters |
+| Admin Payments | ✅ | Partial | Withdrawals view; Recharts |
+| Admin Reviews | ✅ | Partial | |
+| Admin Settings | ✅ | Partial | |
 
 ---
 
@@ -233,32 +286,30 @@ services/   email.service (Nodemailer), otp.service (6-digit, 10-min TTL, 3 atte
 ### Fix Now (breaks features)
 - [x] ~~`auth.routes.js` — `password` optional on `/login`~~ ✅ Done
 - [x] ~~`auth.routes.js` — remove `password` validation on `/register`~~ ✅ Done
-- [ ] Fix socket event names: `conversation:join` → `join:conversation`, `typing` → `typing:start`/`typing:stop` in `useSocket.js`
-- [ ] Enable Razorpay: set credentials in `server/.env` and update `config/razorpay.js`
+- [x] ~~Fix socket event names in `useSocket.js`~~ ✅ Done 2026-03-23
+- [ ] Enable Razorpay: set credentials in `server/.env`, flip `PAYMENTS_ENABLED=true` in `PaymentPage.jsx`
 
 ### Before Full Integration
-- [ ] Audit ALL `useQuery` calls for `onSuccess`/`onError` → replace with `useEffect`
-- [ ] Verify `payments.js` service uses `/payments/create-order` not `/payments/order`
+- [x] Audit ALL `useQuery` calls for `onSuccess`/`onError` → replace with `useEffect` (Verified clean)
 - [ ] Test auto token-refresh flow end-to-end (access token expires at 15m)
 - [ ] Wire real SMTP credentials — OTP emails only log to console in dev mode
+- [ ] Wire real Cloudinary credentials — image uploads fail without them
 
 ### Features with Server Ready, No Client UI
+- [x] Review submission form (can read reviews, cannot write) -> Added to BookingDetail
 - [ ] Google OAuth (login buttons exist, no backend handler)
-- [ ] Image upload UI via Cloudinary (upload service + server route exist)
-- [ ] Combo packages (full server: routes + model + AI suggestions via OpenAI)
 - [ ] Cart page and checkout flow (cartStore + server routes exist)
-- [ ] Review submission form (can read reviews, cannot write)
+- [ ] Combo packages (full server: routes + model + AI suggestions via OpenAI)
 - [ ] Vendor withdrawal request UI
-- [ ] Admin vendor approval flow (approve/reject sends email)
-- [ ] Invoice PDF download button (service call + server route exist)
+- [x] Invoice PDF download button (service call + server route exist) -> Found working in BookingDetail
 - [ ] AI combo suggestions (OpenAI API key needed: `OPENAI_API_KEY`)
 
 ### UX Polish
-- [ ] Category cards on Home deep-link to BrowsePage with filter
-- [ ] Create new conversation if Message Vendor has no existing chat
-- [ ] Booking flow: BookingForm success → BookingConfirm → PaymentPage
-- [ ] Error boundary / friendly 500 page
+- [x] Category cards on Home deep-link to BrowsePage with filter -> Native ?category= functionality verified
+- [ ] Booking flow continuity: BookingConfirm → PaymentPage (once Razorpay enabled)
+- [x] Error boundary / friendly 500 page -> NotFound and ErrorBoundary components implemented
 - [ ] Consistent skeletons on all data-loading pages
+- [x] Admin booking detail — add status change actions (currently read-only) -> Added management dropdown
 
 ---
 
@@ -327,3 +378,5 @@ VITE_GOOGLE_MAPS_KEY=
 8. **Razorpay needs server config** — never trust client-side payment status alone
 9. **Fonts** — `font-filson` headings/logo | `font-lato` body text
 10. **Search web docs for new patterns** — especially Razorpay, socket.io, Cloudinary, OpenAI
+11. **vendorStatus middleware** — `requireApprovedVendor` blocks pending/rejected/suspended vendors from key routes (returns 403 with `status` + `code` fields)
+12. **OTPs are bcrypt-hashed** — never compare OTP plaintext to DB value; use `bcrypt.compare()`

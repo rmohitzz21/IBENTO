@@ -35,8 +35,8 @@ export default function Navbar() {
 
   return (
     <header
-      className={`sticky top-0 z-50 bg-white transition-all duration-300 ${
-        scrolled ? 'shadow-[0_2px_20px_rgba(0,0,0,0.09)]' : 'border-b border-black/5'
+      className={`sticky top-0 z-50 transition-all duration-300 ${
+        scrolled ? 'bg-white/80 backdrop-blur-xl shadow-[0_4px_32px_rgba(0,0,0,0.05)] border-b border-white/50' : 'bg-white border-b border-black/5'
       }`}
     >
       <div className="max-w-[1280px] mx-auto px-6 h-16 flex items-center gap-8">
@@ -97,8 +97,8 @@ export default function Navbar() {
               </Link>
               <Link
                 to="/signup"
-                className="px-5 py-2 rounded-lg text-sm font-semibold font-lato text-white transition-colors hover:opacity-90"
-                style={{ background: '#F06138' }}
+                className="px-6 py-2.5 rounded-xl text-sm font-semibold font-lato text-white transition-all hover:scale-105 shadow-[0_4px_12px_rgba(240,97,56,0.3)]"
+                style={{ background: 'linear-gradient(135deg, #F06138, #8B4332)' }}
               >
                 Get Started
               </Link>

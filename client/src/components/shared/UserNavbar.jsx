@@ -74,9 +74,11 @@ export default function UserNavbar() {
   const displayName = user?.name?.split(' ')[0] ?? 'Aradhya'
 
   return (
-    <header className={`sticky top-0 z-50 ${scrolled ? 'shadow-md' : ''}`}>
+    <header className={`sticky top-0 z-50 transition-all duration-300 ${
+      scrolled ? 'bg-white/85 backdrop-blur-xl shadow-[0_4px_32px_rgba(0,0,0,0.05)] border-b border-white/50' : 'bg-white border-b border-gray-100'
+    }`}>
       {/* ── Strip 1: Main ── */}
-      <div className="bg-white border-b border-gray-100">
+      <div className="bg-transparent">
         <div className="max-w-[1280px] mx-auto px-6 h-16 flex items-center gap-6">
           {/* Logo */}
           <Link
@@ -182,14 +184,14 @@ export default function UserNavbar() {
           <div className="hidden md:block relative" ref={profileRef}>
             <button
               onClick={() => setProfileOpen((p) => !p)}
-              className="flex items-center gap-2 px-3 py-2 rounded-[8px] text-[#FDFAD6]"
-              style={{ background: '#F06138', width: 115, fontSize: 14 }}
+              className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-[#FDFAD6] transition-all hover:opacity-95 shadow-[0_4px_12px_rgba(240,97,56,0.25)]"
+              style={{ background: 'linear-gradient(135deg, #F06138, #8B4332)', width: 125, fontSize: 14 }}
             >
               <User size={16} className="shrink-0" />
               <span className="font-filson font-medium truncate">{displayName}</span>
               <ChevronDown
                 size={14}
-                className={`ml-auto shrink-0 transition-transform duration-200 ${profileOpen ? 'rotate-180' : ''}`}
+                className={`ml-auto shrink-0 transition-transform duration-300 ${profileOpen ? 'rotate-180' : ''}`}
               />
             </button>
 
@@ -242,7 +244,7 @@ export default function UserNavbar() {
       </div>
 
       {/* ── Strip 2: Secondary ── */}
-      <div className="hidden md:block" style={{ background: '#FFF3EF' }}>
+      <div className={`hidden md:block transition-all duration-300 ${scrolled ? 'bg-transparent border-t border-black/5' : 'bg-[#FFF3EF]'}`}>
         <div className="max-w-[1280px] mx-auto px-6 h-10 flex items-center">
           {/* Left links */}
           <div className="flex items-center gap-6">

@@ -64,30 +64,62 @@
     animation: shimmer 1.5s infinite;
   }
 
-  /* Orange gradient button */
+  /* Orange premium gradient button */
   .btn-primary {
-    @apply bg-orange text-cream-yellow font-filson text-sm font-medium px-6 py-3 rounded transition-all duration-200;
-    @apply hover:bg-orange-dark active:scale-95;
+    @apply font-filson text-sm font-semibold px-6 py-3 rounded-2xl transition-all duration-300 flex items-center justify-center gap-2;
+    background: linear-gradient(135deg, var(--orange), var(--brown));
+    color: var(--cream-yellow);
+    box-shadow: 0 4px 12px rgba(240, 97, 56, 0.25);
+  }
+  .btn-primary:hover {
+    box-shadow: 0 6px 20px rgba(240, 97, 56, 0.4);
+    transform: translateY(-1px);
+    opacity: 0.95;
+  }
+  .btn-primary:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 8px rgba(240, 97, 56, 0.2);
   }
 
   .btn-outline {
-    @apply border border-orange text-orange font-filson text-sm font-medium px-6 py-3 rounded transition-all duration-200;
-    @apply hover:bg-orange hover:text-cream-yellow;
+    @apply border-2 border-[rgba(240,97,56,0.2)] text-orange font-filson text-sm font-semibold px-6 py-3 rounded-2xl transition-all duration-300 bg-transparent flex items-center justify-center gap-2;
+  }
+  .btn-outline:hover {
+    @apply border-orange bg-[#FFF3EF];
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(240, 97, 56, 0.1);
+  }
+  .btn-outline:active {
+    transform: translateY(1px);
+    box-shadow: none;
   }
 
-  /* Input styling */
+  /* Input premium styling */
   .input-field {
-    @apply w-full bg-cream-input border rounded px-4 py-3 text-text-dark placeholder:text-text-muted;
-    @apply focus:outline-none focus:ring-2 focus:border-orange;
-    @apply transition-all duration-200;
-    border-color: var(--border-input);
+    @apply w-full bg-cream-input border rounded-xl px-4 py-3.5 text-text-dark placeholder:text-[#9CA3AF];
+    @apply focus:outline-none focus:ring-2 focus:ring-[rgba(240,97,56,0.15)] focus:border-orange;
+    @apply transition-all duration-300;
+    border-color: rgba(0,0,0,0.06);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.01);
+  }
+  .input-field:hover {
+    border-color: rgba(240,97,56,0.3);
   }
 
-  /* Card base */
+  /* Card premium base */
   .card {
-    @apply bg-cream-card rounded-md;
-    border: 0.5px solid var(--border-card);
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    @apply bg-white rounded-2xl transition-all duration-300;
+    border: 1px solid rgba(0,0,0,0.04);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03), 0 1px 3px rgba(0,0,0,0.02);
+  }
+  .card-hover:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.06), 0 4px 8px rgba(0,0,0,0.03);
+  }
+  
+  /* Glassmorphism utility */
+  .glass {
+    @apply bg-white/70 backdrop-blur-xl border border-white/40 shadow-[0_4px_24px_rgba(0,0,0,0.04)];
   }
 
   /* Status badges */

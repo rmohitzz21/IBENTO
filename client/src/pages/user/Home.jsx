@@ -107,22 +107,23 @@ export default function Home() {
             Discover top-rated photographers, decorators, caterers and more — all in {city}.
           </motion.p>
 
-          {/* Search bar */}
+          {/* Premium Search bar */}
           <motion.form
             initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
             onSubmit={handleSearch}
-            className="flex items-center gap-2 max-w-xl"
+            className="flex items-center max-w-xl rounded-3xl p-1.5 transition-all duration-300 focus-within:ring-2 focus-within:ring-white/40 glass"
+            style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}
           >
-            <div className="flex-1 flex items-center gap-3 px-4 py-3.5 rounded-2xl" style={{ background: 'rgba(255,255,255,0.95)' }}>
-              <Search size={17} className="text-[#F06138] shrink-0" />
+            <div className="flex-1 flex items-center gap-3 px-5 py-3.5">
+              <Search size={20} className="text-white/80 shrink-0" />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={`Search vendors in ${city}…`}
-                className="flex-1 bg-transparent font-lato text-sm text-[#101828] placeholder:text-[#9CA3AF] outline-none"
+                className="flex-1 bg-transparent font-lato text-base text-white placeholder-white/60 outline-none"
               />
             </div>
-            <button type="submit" className="px-5 py-3.5 rounded-2xl font-lato font-bold text-sm hover:opacity-90 transition-opacity shrink-0" style={{ background: '#F06138', color: '#FDFAD6' }}>
+            <button type="submit" className="px-7 py-3.5 rounded-2xl font-lato font-bold text-sm bg-white text-[#F06138] hover:bg-[#FDFAD6] shadow-[0_4px_12px_rgba(255,255,255,0.2)] hover:scale-105 transition-all shrink-0">
               Search
             </button>
           </motion.form>
@@ -191,23 +192,23 @@ export default function Home() {
         {/* ── OFFERS TEASER ────────────────────────────────────── */}
         <Link to="/offers">
           <motion.div
-            whileHover={{ scale: 1.01 }}
+            whileHover={{ scale: 1.01, translateY: -2 }}
             whileTap={{ scale: 0.99 }}
-            className="relative overflow-hidden rounded-2xl px-6 py-5 flex items-center justify-between gap-4 cursor-pointer"
+            className="relative overflow-hidden rounded-3xl px-6 py-5 flex items-center justify-between gap-4 cursor-pointer shadow-[0_8px_24px_rgba(139,67,50,0.2)] transition-shadow hover:shadow-[0_12px_32px_rgba(139,67,50,0.3)] border border-[#8B4332]/20"
             style={{ background: 'linear-gradient(135deg, #F06138 0%, #8B4332 100%)' }}
           >
             <div className="absolute right-0 top-0 w-48 h-48 rounded-full pointer-events-none opacity-10" style={{ background: 'radial-gradient(circle, white 0%, transparent 70%)', transform: 'translate(30%, -30%)' }} />
-            <div className="flex items-center gap-4">
-              <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
-                <BadgePercent size={22} className="text-white" />
+            <div className="flex items-center gap-5">
+              <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center shrink-0 backdrop-blur-sm shadow-inner hidden sm:flex">
+                <BadgePercent size={24} className="text-white drop-shadow-sm" />
               </div>
               <div>
-                <p className="font-filson font-black text-white text-base leading-snug">Exclusive packages & deals</p>
-                <p className="font-lato text-white/70 text-xs mt-0.5">Handpicked service bundles from top vendors — curated for every occasion</p>
+                <p className="font-filson font-black text-white text-lg leading-snug tracking-tight">Exclusive packages & deals</p>
+                <p className="font-lato text-white/80 text-sm mt-0.5">Handpicked service bundles from top vendors — curated for every occasion</p>
               </div>
             </div>
-            <div className="flex items-center gap-1.5 px-4 py-2 rounded-xl font-lato font-bold text-sm shrink-0" style={{ background: 'rgba(255,255,255,0.18)', color: 'white' }}>
-              Browse <ChevronRight size={14} />
+            <div className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl font-lato font-bold text-sm shrink-0 bg-white/20 hover:bg-white/30 transition-colors backdrop-blur-md text-white">
+              Browse <ChevronRight size={16} />
             </div>
           </motion.div>
         </Link>
@@ -255,9 +256,9 @@ export default function Home() {
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.05 }}
                 >
-                  <Link to={`/vendor/${v._id}`} className="block rounded-2xl overflow-hidden border border-black/5 hover:shadow-xl transition-all duration-300 bg-white group">
+                  <Link to={`/vendor/${v._id}`} className="block overflow-hidden card card-hover h-full flex flex-col group border-0 bg-white relative">
                     {/* Image */}
-                    <div className="relative overflow-hidden h-44">
+                    <div className="relative overflow-hidden h-48 shrink-0">
                       <img
                         src={v.portfolio?.[0]?.url || v.coverImage || 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=400&q=80'}
                         alt={v.businessName}
@@ -272,14 +273,14 @@ export default function Home() {
                       )}
                     </div>
 
-                    <div className="p-3.5">
-                      <p className="font-lato font-bold text-[#101828] text-sm truncate">{v.businessName}</p>
-                      <div className="flex items-center gap-1 mt-0.5 mb-2.5">
-                        <MapPin size={10} className="text-[#6A6A6A] shrink-0" />
-                        <p className="font-lato text-[#6A6A6A] text-[11px] truncate">{v.category?.name || v.category} · {v.city}</p>
+                    <div className="p-4 flex flex-col flex-1 relative z-10 transition-transform duration-500 group-hover:-translate-y-1 rounded-t-2xl -mt-4 bg-white">
+                      <p className="font-lato font-bold text-[#101828] text-sm truncate group-hover:text-[#F06138] transition-colors">{v.businessName}</p>
+                      <div className="flex items-center gap-1.5 mt-1.5 mb-3">
+                        <MapPin size={12} className="text-[#6A6A6A] shrink-0" />
+                        <p className="font-lato text-[#6A6A6A] text-xs truncate">{v.category?.name || v.category} · {v.city}</p>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="font-lato text-[11px] text-[#6A6A6A]">{v.totalReviews || 0} reviews</span>
+                      <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-100">
+                        <span className="font-lato text-[11px] text-[#6A6A6A] bg-gray-50 px-2 py-1 rounded-lg">{v.totalReviews || 0} reviews</span>
                         {v.startingPrice ? (
                           <span className="font-filson font-black text-[#8B4332] text-sm">
                             ₹{fmt(v.startingPrice)}
@@ -328,30 +329,30 @@ export default function Home() {
                 >
                   <Link
                     to={`/vendor/${svc.vendorId?._id}`}
-                    className="block bg-white rounded-2xl border border-black/5 hover:shadow-lg transition-all duration-300 overflow-hidden group"
+                    className="block card card-hover flex flex-col overflow-hidden group h-full border-0 relative bg-white"
                   >
                     {/* Image */}
-                    <div className="relative overflow-hidden h-40">
+                    <div className="relative overflow-hidden h-48 shrink-0">
                       {svc.images?.length > 0 ? (
-                        <img src={svc.images[0]} alt={svc.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <img src={svc.images[0]} alt={svc.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center" style={{ background: '#FFF3EF' }}>
-                          <Sparkles size={28} className="text-[#F06138] opacity-30" />
+                          <Sparkles size={32} className="text-[#F06138] opacity-20" />
                         </div>
                       )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     </div>
 
-                    <div className="p-4">
-                      <p className="font-lato font-bold text-sm text-[#101828] truncate mb-0.5">{svc.title}</p>
+                    <div className="p-5 flex flex-col flex-1 relative z-10 transition-transform duration-500 group-hover:-translate-y-1 rounded-t-2xl -mt-4 bg-white">
+                      <p className="font-lato font-bold text-sm text-[#101828] truncate mb-0.5 group-hover:text-[#F06138] transition-colors">{svc.title}</p>
                       <p className="font-lato text-xs text-[#6A6A6A] truncate mb-3">by {svc.vendorId?.businessName}</p>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1">
-                          <Star size={12} className="text-amber-400 fill-amber-400" />
-                          <span className="font-lato text-xs font-semibold text-[#101828]">{svc.vendorId?.rating?.toFixed(1) || '—'}</span>
-                          <span className="font-lato text-[11px] text-[#6A6A6A]">· {svc.vendorId?.city}</span>
+                      <div className="flex items-center justify-between mt-auto">
+                        <div className="flex items-center gap-1 px-2 py-1 rounded-lg" style={{ background: '#FFFEF5', border: '1px solid rgba(139,67,50,0.08)' }}>
+                          <Star size={12} className="text-[#F06138] fill-[#F06138]" />
+                          <span className="font-lato text-xs font-bold text-[#101828]">{svc.vendorId?.rating?.toFixed(1) || '—'}</span>
                         </div>
-                        <div className="flex items-center gap-0.5 font-filson font-black text-[#8B4332] text-base">
-                          <IndianRupee size={13} />
+                        <div className="flex items-center gap-0.5 font-filson font-black text-[#8B4332] text-sm sm:text-base tracking-tight">
+                          <IndianRupee size={15} />
                           {fmt(svc.price)}
                         </div>
                       </div>
@@ -441,10 +442,9 @@ export default function Home() {
 
             <Link
               to="/explore"
-              className="relative z-10 shrink-0 flex items-center gap-2 px-6 py-3.5 rounded-2xl font-lato font-bold text-sm hover:opacity-90 transition-opacity"
-              style={{ background: '#F06138', color: '#FDFAD6' }}
+              className="relative z-10 shrink-0 flex items-center gap-2 px-8 py-4 rounded-2xl font-lato font-bold text-sm bg-white text-[#101828] hover:scale-105 shadow-[0_8px_24px_rgba(255,255,255,0.15)] transition-all"
             >
-              <Sparkles size={15} /> Start Planning
+              <Sparkles size={16} className="text-[#F06138]" /> Start Planning
             </Link>
           </div>
         </section>

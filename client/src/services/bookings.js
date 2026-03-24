@@ -10,3 +10,5 @@ export const completeBooking = (id) => api.put(`/bookings/${id}/complete`)
 export const cancelBooking = (id, data) => api.put(`/bookings/${id}/cancel`, data)
 export const getInvoice = (id) =>
   api.get(`/bookings/${id}/invoice`, { responseType: 'blob' })
+
+export const createReview = (data) => api.post('/reviews', data)

@@ -12,6 +12,7 @@ import { AnimatePresence } from 'framer-motion'
 import { toastConfig } from './components/shared/Toast'
 import { useAuthStore } from './stores/authStore'
 import { useSocket } from './hooks/useSocket'
+import ErrorBoundary from './components/shared/ErrorBoundary'
 
 /* ─── Lazy-loaded pages ─────────────────────────────────────── */
 
@@ -22,6 +23,7 @@ const BrowsePage     = lazy(() => import('./pages/public/BrowsePage'))
 const VendorDetail   = lazy(() => import('./pages/public/VendorDetail'))
 const AboutPage      = lazy(() => import('./pages/public/AboutPage'))
 const ContactPage    = lazy(() => import('./pages/public/ContactPage'))
+const NotFound       = lazy(() => import('./pages/public/NotFound'))
 
 // Auth
 const Login          = lazy(() => import('./pages/auth/Login'))
@@ -405,7 +407,7 @@ function AnimatedRoutes() {
         <Route path="/settings" element={<Navigate to="/profile" replace />} />
 
         {/* ── 404 fallback ────────────────────────────────────── */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </AnimatePresence>
   )
@@ -414,14 +416,16 @@ function AnimatedRoutes() {
 /* ─── Root App ───────────────────────────────────────────────── */
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Toaster {...toastConfig} />
-        <SocketInit />
-        <Suspense fallback={<PageLoader />}>
-          <AnimatedRoutes />
-        </Suspense>
-      </BrowserRouter>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <Toaster {...toastConfig} />
+          <SocketInit />
+          <Suspense fallback={<PageLoader />}>
+            <AnimatedRoutes />
+          </Suspense>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </ErrorBoundary>
   )
 }
