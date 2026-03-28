@@ -233,7 +233,7 @@ export default function CreateEvent() {
 
             {/* Next steps */}
             <div
-              className="text-left rounded-2xl p-5 mb-8"
+              className="text-left rounded-2xl p-5 mb-6"
               style={{ background: '#fff', border: '1px solid rgba(139,67,50,0.08)', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
             >
               <p className="font-lato font-bold text-[#101828] text-sm mb-4">What happens next?</p>
@@ -255,6 +255,43 @@ export default function CreateEvent() {
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* Share & Collaborate */}
+            <div
+              className="text-left rounded-2xl p-5 mb-8 border"
+              style={{ background: '#FAFAFA', borderColor: 'rgba(0,0,0,0.06)' }}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="font-lato font-bold text-[#101828] text-sm">Collaborate & Share</p>
+                  <p className="font-lato text-xs text-[#6A6A6A] mt-0.5">Invite co-hosts or share the plan with family.</p>
+                </div>
+                <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm border border-black/5">
+                  <span className="text-xl">🤝</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex-1 bg-white border border-black/10 rounded-xl px-3 py-2.5 flex items-center gap-2">
+                  <span className="text-xs text-[#9CA3AF] font-medium font-lato truncate">ibento.com/plan/{Math.random().toString(36).substring(2, 10)}</span>
+                </div>
+                <button 
+                  onClick={() => toast.success('Link copied to clipboard!')}
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold font-lato transition-colors"
+                  style={{ background: '#E2E8F0', color: '#334155' }}
+                >
+                  Copy Link
+                </button>
+              </div>
+
+              <button 
+                onClick={() => toast.success('Co-host invitation active!')}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold font-lato border border-dashed transition-colors"
+                style={{ borderColor: '#CBD5E1', color: '#64748B', background: '#fff' }}
+              >
+                + Invite Collaborators
+              </button>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3">
@@ -281,384 +318,410 @@ export default function CreateEvent() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: '#FFFDFC' }}>
-      <UserNavbar />
+    <div className="min-h-screen flex flex-col md:flex-row bg-[#FFFDFC]">
+      {/* ── LEFT PANE (Image & Branding, visible on md+) ────── */}
+      <div className="hidden md:flex flex-col relative w-[40%] lg:w-[35%] text-white p-10 lg:p-14 justify-between bg-[#1a0a00]">
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&q=80&w=2069" 
+            className="w-full h-full object-cover transition-transform duration-[20s] hover:scale-105" 
+            alt="Event Planner" 
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/30" />
+        </div>
+        
+        {/* Top left corner - Back to Home */}
+        <div className="relative z-10">
+          <Link to="/" className="inline-flex items-center gap-2 text-white/70 hover:text-white transition-colors mb-16">
+            <ArrowLeft size={16} /> 
+            <span className="font-lato text-sm font-semibold uppercase tracking-wider">Back to Home</span>
+          </Link>
 
-      {/* Page header */}
-      <div className="border-b border-black/5" style={{ background: '#FEFDEB' }}>
-        <div className="max-w-[1280px] mx-auto px-6 py-6">
-          <div className="flex items-center gap-3">
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #F06138, #8B4332)' }}
-            >
-              <Sparkles size={18} className="text-white" />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full mb-6 text-xs font-bold font-lato" style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.2)' }}>
+              <Sparkles size={12} className="text-[#F06138]" /> Premium Planning
             </div>
-            <div>
-              <h1 className="font-filson font-black text-[#101828] text-2xl">Create Your Event</h1>
-              <p className="font-lato text-[#6A6A6A] text-sm">
-                Tell us what you're planning — we'll help you find the perfect vendors
-              </p>
-            </div>
-          </div>
+            <h1 className="font-filson font-black text-4xl lg:text-5xl leading-[1.1] mb-5 drop-shadow-md">
+              Design your<br/><span className="text-[#F06138]">perfect</span> event.
+            </h1>
+            <p className="font-lato text-white/80 text-lg max-w-sm drop-shadow-sm">
+              Answer a few quick questions and we'll instantly organize your vision and match you with top-rated vendors.
+            </p>
+          </motion.div>
+        </div>
+        
+        <div className="relative z-10 flex items-center justify-between border-t border-white/20 pt-8 mt-12 w-full">
+           <div className="font-lato font-bold text-sm tracking-wider uppercase text-white/50">
+             Step {step < 4 ? step + 1 : 4} of 4
+           </div>
+           {/* Dots indicator */}
+           <div className="flex items-center gap-2">
+             {STEPS.map((_, i) => (
+               <div 
+                 key={i} 
+                 className={`h-1.5 rounded-full transition-all duration-300 ${i === step ? 'w-8 bg-[#F06138]' : i < step ? 'w-2 bg-white' : 'w-2 bg-white/20'}`}
+               />
+             ))}
+           </div>
         </div>
       </div>
 
-      <div className="max-w-[680px] mx-auto px-6 py-10">
-        <StepIndicator current={step} />
-
-        <AnimatePresence mode="wait">
-          {/* ── Step 0: Event Type ─────────────────────────────── */}
-          {step === 0 && (
-            <motion.div
-              key="step0"
-              initial={{ opacity: 0, x: 32 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -32 }}
-              transition={{ duration: 0.3 }}
-            >
-              <h2 className="font-filson font-black text-[#101828] text-2xl mb-2">
-                What are you celebrating?
-              </h2>
-              <p className="font-lato text-[#6A6A6A] text-sm mb-6">
-                Pick the type of event you want to plan
-              </p>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                {EVENT_TYPES.map((type) => (
-                  <motion.button
-                    key={type.id}
-                    type="button"
-                    whileTap={{ scale: 0.96 }}
-                    onClick={() => set('eventType', type.id)}
-                    className="flex flex-col items-center gap-2 p-4 rounded-2xl transition-all duration-200"
-                    style={form.eventType === type.id
-                      ? {
-                          background: '#FFF3EF',
-                          border: '2px solid #F06138',
-                          boxShadow: '0 0 0 3px rgba(240,97,56,0.1)',
-                        }
-                      : {
-                          background: '#fff',
-                          border: '2px solid rgba(139,67,50,0.1)',
-                        }
-                    }
-                  >
-                    <span className="text-2xl">{type.emoji}</span>
-                    <span
-                      className="font-lato font-semibold text-xs text-center leading-tight"
-                      style={{ color: form.eventType === type.id ? '#F06138' : '#4C4C4C' }}
-                    >
-                      {type.label}
-                    </span>
-                    {form.eventType === type.id && (
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="absolute"
-                      />
-                    )}
-                  </motion.button>
-                ))}
-              </div>
-            </motion.div>
-          )}
-
-          {/* ── Step 1: Event Details ──────────────────────────── */}
-          {step === 1 && (
-            <motion.div
-              key="step1"
-              initial={{ opacity: 0, x: 32 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -32 }}
-              transition={{ duration: 0.3 }}
-              className="space-y-5"
-            >
-              <div>
-                <h2 className="font-filson font-black text-[#101828] text-2xl mb-1">
-                  {EVENT_TYPES.find(e => e.id === form.eventType)?.emoji} Tell us the details
-                </h2>
-                <p className="font-lato text-[#6A6A6A] text-sm">
-                  Help vendors understand your event
-                </p>
-              </div>
-
-              {/* Event name */}
-              <div>
-                <label className="block font-lato font-semibold text-sm text-[#364153] mb-1.5">
-                  Event Name
-                </label>
-                <input
-                  type="text"
-                  placeholder={`e.g. Priya & Rahul's Wedding`}
-                  value={form.eventName}
-                  onChange={(e) => set('eventName', e.target.value)}
-                  className="input-field"
-                />
-              </div>
-
-              {/* Date + City */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-lato font-semibold text-sm text-[#364153] mb-1.5">
-                    <span className="inline-flex items-center gap-1.5"><Calendar size={13} /> Event Date</span>
-                  </label>
-                  <input
-                    type="date"
-                    value={form.date}
-                    min={new Date().toISOString().split('T')[0]}
-                    onChange={(e) => set('date', e.target.value)}
-                    className="input-field"
-                  />
-                </div>
-                <div>
-                  <label className="block font-lato font-semibold text-sm text-[#364153] mb-1.5">
-                    <span className="inline-flex items-center gap-1.5"><MapPin size={13} /> City</span>
-                  </label>
-                  <select
-                    value={form.city}
-                    onChange={(e) => set('city', e.target.value)}
-                    className="input-field"
-                  >
-                    <option value="">Select city</option>
-                    {CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
-              </div>
-
-              {/* Guests */}
-              <div>
-                <label className="block font-lato font-semibold text-sm text-[#364153] mb-2">
-                  <span className="inline-flex items-center gap-1.5"><Users size={13} /> Expected Guests</span>
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {GUEST_RANGES.map((g) => (
-                    <button
-                      key={g.id}
-                      type="button"
-                      onClick={() => set('guests', g.id)}
-                      className="px-4 py-2 rounded-xl font-lato font-semibold text-sm transition-all"
-                      style={form.guests === g.id
-                        ? { background: '#F06138', color: '#FDFAD6', boxShadow: '0 2px 8px rgba(240,97,56,0.25)' }
-                        : { background: '#fff', border: '1px solid rgba(139,67,50,0.15)', color: '#4C4C4C' }
-                      }
-                    >
-                      {g.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Budget */}
-              <div>
-                <label className="block font-lato font-semibold text-sm text-[#364153] mb-2">
-                  <span className="inline-flex items-center gap-1.5"><IndianRupee size={13} /> Budget Range</span>
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {BUDGET_RANGES.map((b) => (
-                    <button
-                      key={b.id}
-                      type="button"
-                      onClick={() => set('budget', b.id)}
-                      className="px-4 py-2 rounded-xl font-lato font-semibold text-sm transition-all"
-                      style={form.budget === b.id
-                        ? { background: '#F06138', color: '#FDFAD6', boxShadow: '0 2px 8px rgba(240,97,56,0.25)' }
-                        : { background: '#fff', border: '1px solid rgba(139,67,50,0.15)', color: '#4C4C4C' }
-                      }
-                    >
-                      {b.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* ── Step 2: Services Needed ───────────────────────── */}
-          {step === 2 && (
-            <motion.div
-              key="step2"
-              initial={{ opacity: 0, x: 32 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -32 }}
-              transition={{ duration: 0.3 }}
-            >
-              <h2 className="font-filson font-black text-[#101828] text-2xl mb-1">
-                What services do you need?
-              </h2>
-              <p className="font-lato text-[#6A6A6A] text-sm mb-6">
-                Select all that apply — we'll match you with the right vendors
-              </p>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {SERVICES.map(({ id, label, icon: Icon }) => {
-                  const selected = form.services.includes(id)
-                  return (
-                    <motion.button
-                      key={id}
-                      type="button"
-                      whileTap={{ scale: 0.96 }}
-                      onClick={() => toggleService(id)}
-                      className="flex items-center gap-3 p-4 rounded-2xl text-left transition-all duration-200"
-                      style={selected
-                        ? {
-                            background: '#FFF3EF',
-                            border: '2px solid #F06138',
-                            boxShadow: '0 0 0 3px rgba(240,97,56,0.08)',
-                          }
-                        : {
-                            background: '#fff',
-                            border: '2px solid rgba(139,67,50,0.1)',
-                          }
-                      }
-                    >
-                      <div
-                        className="w-9 h-9 rounded-xl shrink-0 flex items-center justify-center"
-                        style={{ background: selected ? '#F06138' : 'rgba(139,67,50,0.08)' }}
-                      >
-                        <Icon size={16} style={{ color: selected ? '#FDFAD6' : '#8B4332' }} />
-                      </div>
-                      <span
-                        className="font-lato font-semibold text-sm leading-tight"
-                        style={{ color: selected ? '#F06138' : '#4C4C4C' }}
-                      >
-                        {label}
-                      </span>
-                      {selected && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="ml-auto shrink-0"
-                        >
-                          <CheckCircle2 size={16} style={{ color: '#F06138' }} />
-                        </motion.div>
-                      )}
-                    </motion.button>
-                  )
-                })}
-              </div>
-
-              {form.services.length > 0 && (
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="mt-4 font-lato text-xs text-center"
-                  style={{ color: '#F06138' }}
+      {/* ── RIGHT PANE (Form) ────────────────────────────────── */}
+      <div className="flex-1 flex flex-col relative h-screen overflow-y-auto overflow-x-hidden bg-[#FFFDFC]">
+        {/* Mobile Header */}
+        <div className="md:hidden flex items-center justify-between p-5 border-b border-black/5 bg-white sticky top-0 z-50 shadow-sm">
+           <Link to="/" className="inline-flex items-center gap-1.5 text-[#101828]">
+             <ArrowLeft size={16} /> <span className="font-lato font-bold text-sm">Cancel</span>
+           </Link>
+           <div className="text-xs font-lato font-bold text-[#F06138] bg-[#FFF3EF] px-3 py-1.5 rounded-full">Step {step < 4 ? step + 1 : 4} of 4</div>
+        </div>
+        
+        <div className="flex-1 flex flex-col p-6 sm:p-12 lg:p-20 justify-center min-h-max pb-32">
+          <div className="w-full max-w-[580px] mx-auto">
+            
+            <AnimatePresence mode="wait">
+              {/* ── Step 0: Event Type ─────────────────────────────── */}
+              {step === 0 && (
+                <motion.div
+                  key="step0"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20, position: 'absolute' }}
+                  transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
+                  className="w-full"
                 >
-                  {form.services.length} service{form.services.length > 1 ? 's' : ''} selected
-                </motion.p>
-              )}
-            </motion.div>
-          )}
+                  <h2 className="font-filson font-black text-[#101828] text-3xl sm:text-4xl mb-3">
+                    What are you celebrating? <span className="text-[#F06138]">*</span>
+                  </h2>
+                  <p className="font-lato text-[#6A6A6A] text-base mb-8">
+                    Choose the type of event to help us tailor our recommendations.
+                  </p>
 
-          {/* ── Step 3: Summary & Notes ───────────────────────── */}
-          {step === 3 && (
-            <motion.div
-              key="step3"
-              initial={{ opacity: 0, x: 32 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -32 }}
-              transition={{ duration: 0.3 }}
-            >
-              <h2 className="font-filson font-black text-[#101828] text-2xl mb-1">
-                Almost there!
-              </h2>
-              <p className="font-lato text-[#6A6A6A] text-sm mb-6">
-                Review your event and add any special requirements
-              </p>
-
-              {/* Summary card */}
-              <div
-                className="rounded-2xl p-5 mb-5"
-                style={{ background: '#FEFDEB', border: '1px solid rgba(139,67,50,0.1)' }}
-              >
-                <div className="grid grid-cols-2 gap-4">
-                  {[
-                    { label: 'Event', value: `${selectedType?.emoji} ${selectedType?.label}` },
-                    { label: 'Name', value: form.eventName },
-                    { label: 'Date', value: form.date ? new Date(form.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : '—' },
-                    { label: 'City', value: form.city },
-                    { label: 'Guests', value: GUEST_RANGES.find(g => g.id === form.guests)?.label },
-                    { label: 'Budget', value: BUDGET_RANGES.find(b => b.id === form.budget)?.label },
-                  ].map((row) => (
-                    <div key={row.label}>
-                      <p className="font-lato text-[10px] uppercase tracking-wide text-[#6A6A6A] mb-0.5">{row.label}</p>
-                      <p className="font-lato font-semibold text-[#101828] text-sm">{row.value}</p>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-4 pt-4 border-t border-black/5">
-                  <p className="font-lato text-[10px] uppercase tracking-wide text-[#6A6A6A] mb-2">Services needed</p>
-                  <div className="flex flex-wrap gap-2">
-                    {form.services.map((id) => {
-                      const svc = SERVICES.find(s => s.id === id)
-                      return (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    {EVENT_TYPES.map((type) => (
+                      <motion.button
+                        key={type.id}
+                        type="button"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => { set('eventType', type.id); setTimeout(next, 300) }}
+                        className="flex flex-col items-center justify-center gap-3 p-5 rounded-3xl transition-all duration-300 relative overflow-hidden group"
+                        style={form.eventType === type.id
+                          ? {
+                              background: '#FFF3EF',
+                              border: '2px solid #F06138',
+                              boxShadow: '0 8px 24px rgba(240,97,56,0.15)',
+                            }
+                          : {
+                              background: '#fff',
+                              border: '2px solid rgba(139,67,50,0.1)',
+                            }
+                        }
+                      >
+                        <span className="text-4xl transition-transform duration-300 group-hover:scale-110">{type.emoji}</span>
                         <span
-                          key={id}
-                          className="px-3 py-1 rounded-full font-lato font-semibold text-xs"
-                          style={{ background: '#FFF3EF', color: '#F06138', border: '1px solid rgba(240,97,56,0.2)' }}
+                          className="font-lato font-bold text-sm text-center leading-tight"
+                          style={{ color: form.eventType === type.id ? '#F06138' : '#101828' }}
                         >
-                          {svc?.label}
+                          {type.label}
                         </span>
+                      </motion.button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              {/* ── Step 1: Event Details ──────────────────────────── */}
+              {step === 1 && (
+                <motion.div
+                  key="step1"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20, position: 'absolute' }}
+                  transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
+                  className="space-y-8 w-full"
+                >
+                  <div>
+                    <h2 className="font-filson font-black text-[#101828] text-3xl sm:text-4xl mb-3">
+                      Let's set the stage <span className="text-[#F06138]">*</span>
+                    </h2>
+                    <p className="font-lato text-[#6A6A6A] text-base">
+                      Give us the essential details of your {(EVENT_TYPES.find(e => e.id === form.eventType)?.label || 'event').toLowerCase()}.
+                    </p>
+                  </div>
+
+                  {/* Event name */}
+                  <div>
+                    <label className="block font-lato font-bold text-lg text-[#101828] mb-3">
+                      Event Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder={`e.g. The Perfect Wedding`}
+                      value={form.eventName}
+                      onChange={(e) => set('eventName', e.target.value)}
+                      className="w-full bg-transparent border-b-2 border-black/10 text-2xl font-lato font-medium text-[#101828] placeholder-black/20 focus:border-[#F06138] focus:outline-none transition-colors py-2 pb-4"
+                    />
+                  </div>
+
+                  {/* Date + City */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                    <div>
+                      <label className="block font-lato font-bold text-sm text-[#6A6A6A] uppercase tracking-wider mb-2">
+                        Event Date
+                      </label>
+                      <input
+                        type="date"
+                        value={form.date}
+                        min={new Date().toISOString().split('T')[0]}
+                        onChange={(e) => set('date', e.target.value)}
+                        className="w-full px-5 py-4 rounded-xl border border-black/10 bg-white shadow-sm font-lato text-[#101828] focus:border-[#F06138] focus:ring-1 focus:ring-[#F06138] outline-none transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-lato font-bold text-sm text-[#6A6A6A] uppercase tracking-wider mb-2">
+                        City
+                      </label>
+                      <select
+                        value={form.city}
+                        onChange={(e) => set('city', e.target.value)}
+                        className="w-full px-5 py-4 rounded-xl border border-black/10 bg-white shadow-sm font-lato text-[#101828] focus:border-[#F06138] focus:ring-1 focus:ring-[#F06138] outline-none transition-all appearance-none"
+                      >
+                        <option value="">Select location</option>
+                        {CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Guests */}
+                  <div>
+                    <label className="block font-lato font-bold text-sm text-[#6A6A6A] uppercase tracking-wider mb-3">
+                      Expected Guest Count
+                    </label>
+                    <div className="flex flex-wrap gap-3">
+                      {GUEST_RANGES.map((g) => (
+                        <button
+                          key={g.id}
+                          type="button"
+                          onClick={() => set('guests', g.id)}
+                          className="px-5 py-3 rounded-xl font-lato font-bold text-sm transition-all hover:-translate-y-0.5"
+                          style={form.guests === g.id
+                            ? { background: '#101828', color: '#fff', boxShadow: '0 8px 20px rgba(16,24,40,0.2)' }
+                            : { background: '#fff', border: '1px solid rgba(0,0,0,0.1)', color: '#4C4C4C' }
+                          }
+                        >
+                          {g.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Budget */}
+                  <div>
+                    <label className="block font-lato font-bold text-sm text-[#6A6A6A] uppercase tracking-wider mb-3">
+                      Overall Budget Range
+                    </label>
+                    <div className="flex flex-wrap gap-3">
+                      {BUDGET_RANGES.map((b) => (
+                        <button
+                          key={b.id}
+                          type="button"
+                          onClick={() => set('budget', b.id)}
+                          className="px-5 py-3 rounded-xl font-lato font-bold text-sm transition-all hover:-translate-y-0.5"
+                          style={form.budget === b.id
+                            ? { background: '#101828', color: '#fff', boxShadow: '0 8px 20px rgba(16,24,40,0.2)' }
+                            : { background: '#fff', border: '1px solid rgba(0,0,0,0.1)', color: '#4C4C4C' }
+                          }
+                        >
+                          {b.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* ── Step 2: Services Needed ───────────────────────── */}
+              {step === 2 && (
+                <motion.div
+                  key="step2"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20, position: 'absolute' }}
+                  transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
+                  className="w-full"
+                >
+                  <h2 className="font-filson font-black text-[#101828] text-3xl sm:text-4xl mb-3">
+                    What services do you need? <span className="text-[#F06138]">*</span>
+                  </h2>
+                  <p className="font-lato text-[#6A6A6A] text-base mb-8">
+                    Select everything you need. We'll find experts for each exact requirement.
+                  </p>
+
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                    {SERVICES.map(({ id, label, icon: Icon }) => {
+                      const selected = form.services.includes(id)
+                      return (
+                        <motion.button
+                          key={id}
+                          type="button"
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => toggleService(id)}
+                          className="flex flex-col items-center justify-center p-5 rounded-3xl text-center transition-all duration-200 group relative overflow-hidden"
+                          style={selected
+                            ? {
+                                background: '#FFF3EF',
+                                border: '2px solid #F06138',
+                                boxShadow: '0 4px 12px rgba(240,97,56,0.15)',
+                              }
+                            : {
+                                background: '#fff',
+                                border: '1px solid rgba(139,67,50,0.15)',
+                              }
+                          }
+                        >
+                          <div
+                            className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-3 transition-colors ${selected ? 'bg-[#F06138]' : 'bg-[#FEFDEB] group-hover:bg-[#FFF3EF]'}`}
+                          >
+                            <Icon size={22} style={{ color: selected ? '#FFF' : '#8B4332' }} />
+                          </div>
+                          <span
+                            className="font-lato font-bold text-sm"
+                            style={{ color: selected ? '#F06138' : '#101828' }}
+                          >
+                            {label}
+                          </span>
+                          {selected && (
+                            <div className="absolute top-3 right-3 text-[#F06138]">
+                              <CheckCircle2 size={16} className="fill-[#FFF3EF]" />
+                            </div>
+                          )}
+                        </motion.button>
                       )
                     })}
                   </div>
-                </div>
-              </div>
+                </motion.div>
+              )}
 
-              {/* Notes */}
-              <div>
-                <label className="block font-lato font-semibold text-sm text-[#364153] mb-1.5">
-                  <span className="inline-flex items-center gap-1.5"><FileText size={13} /> Special Requirements (optional)</span>
-                </label>
-                <textarea
-                  rows={4}
-                  placeholder="e.g. Outdoor venue preferred, vegan catering options, specific theme or color palette..."
-                  value={form.notes}
-                  onChange={(e) => set('notes', e.target.value)}
-                  className="input-field resize-none"
-                  style={{ height: 'auto' }}
-                />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              {/* ── Step 3: Summary & Notes ───────────────────────── */}
+              {step === 3 && (
+                <motion.div
+                  key="step3"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20, position: 'absolute' }}
+                  transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
+                  className="w-full"
+                >
+                  <h2 className="font-filson font-black text-[#101828] text-3xl sm:text-4xl mb-3">
+                    Almost there! 🎉
+                  </h2>
+                  <p className="font-lato text-[#6A6A6A] text-base mb-8">
+                    Review your master plan and add any special requirements.
+                  </p>
 
-        {/* ── Navigation buttons ──────────────────────────────── */}
-        <div className="flex items-center gap-3 mt-8">
-          {step > 0 && (
-            <button
-              type="button"
-              onClick={() => setStep((s) => s - 1)}
-              className="flex items-center gap-2 px-5 py-3 rounded-xl font-lato font-semibold text-sm transition-all hover:bg-gray-50"
-              style={{ border: '1px solid rgba(139,67,50,0.2)', color: '#6A6A6A' }}
-            >
-              <ArrowLeft size={15} /> Back
-            </button>
-          )}
+                  {/* Summary card */}
+                  <div
+                    className="rounded-3xl p-8 mb-8"
+                    style={{ background: '#FEFDEB', border: '1px solid rgba(139,67,50,0.1)', boxShadow: '0 12px 32px rgba(139,67,50,0.05)' }}
+                  >
+                    <div className="flex items-center gap-4 mb-6 pb-6 border-b border-black/5">
+                      <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center text-3xl border border-black/5 shadow-sm">
+                        {selectedType?.emoji}
+                      </div>
+                      <div>
+                        <h3 className="font-filson font-bold text-[#101828] text-xl">{form.eventName}</h3>
+                        <p className="font-lato text-[#F06138] font-bold text-sm tracking-wide">{selectedType?.label} in {form.city}</p>
+                      </div>
+                    </div>
 
-          <motion.button
-            type="button"
-            whileTap={{ scale: 0.98 }}
-            onClick={step < 3 ? next : submit}
-            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-lato font-bold text-sm transition-all"
-            style={{
-              background: '#F06138',
-              color: '#FDFAD6',
-              boxShadow: '0 4px 14px rgba(240,97,56,0.3)',
-            }}
-          >
-            {step < 3 ? (
-              <>Continue <ArrowRight size={15} /></>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-6 gap-x-4">
+                      {[
+                        { label: 'Date', value: form.date ? new Date(form.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : '—' },
+                        { label: 'Guests', value: GUEST_RANGES.find(g => g.id === form.guests)?.label },
+                        { label: 'Budget', value: BUDGET_RANGES.find(b => b.id === form.budget)?.label },
+                      ].map((row) => (
+                        <div key={row.label}>
+                          <p className="font-lato text-xs uppercase tracking-wider text-[#6A6A6A] font-bold mb-1">{row.label}</p>
+                          <p className="font-lato font-bold text-[#101828] text-base">{row.value}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="mt-8 pt-6 border-t border-black/5">
+                      <p className="font-lato text-xs uppercase tracking-wider text-[#6A6A6A] font-bold mb-3">Required Services ({form.services.length})</p>
+                      <div className="flex flex-wrap gap-2">
+                        {form.services.map((id) => {
+                          const svc = SERVICES.find(s => s.id === id)
+                          return (
+                            <span
+                              key={id}
+                              className="px-4 py-2 rounded-xl font-lato font-bold text-xs"
+                              style={{ background: '#FFFDFC', color: '#101828', border: '1px solid rgba(0,0,0,0.05)' }}
+                            >
+                              {svc?.label}
+                            </span>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Notes */}
+                  <div>
+                    <label className="block font-lato font-bold text-sm text-[#6A6A6A] uppercase tracking-wider mb-2">
+                      Special Requirements (Optional)
+                    </label>
+                    <textarea
+                      rows={4}
+                      placeholder="e.g. Needs wheelchair accessibility, completely vegan catering required, looking for a rustic theme..."
+                      value={form.notes}
+                      onChange={(e) => set('notes', e.target.value)}
+                      className="w-full p-5 rounded-2xl border border-black/10 bg-white shadow-sm font-lato text-[#101828] focus:border-[#F06138] focus:ring-2 focus:ring-[#F06138]/20 outline-none transition-all resize-none"
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            
+          </div>
+        </div>
+
+        {/* ── Navigation Footer ──────────────────────────────── */}
+        <div className="sticky bottom-0 left-0 right-0 p-6 sm:px-12 bg-white/90 backdrop-blur-xl border-t border-black/5 z-[60]">
+          <div className="w-full max-w-[580px] mx-auto flex items-center justify-between gap-4">
+            {step > 0 ? (
+              <button
+                type="button"
+                onClick={() => setStep((s) => s - 1)}
+                className="group flex items-center gap-2 px-6 py-4 rounded-xl font-lato font-bold text-sm transition-all hover:bg-gray-50 text-[#101828] border border-black/10"
+              >
+                <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" /> Back
+              </button>
             ) : (
-              <><Sparkles size={15} /> Create My Event</>
+              <div /> // Empty div for spacing if no back button
             )}
-          </motion.button>
+
+            <motion.button
+              type="button"
+              whileTap={{ scale: 0.98 }}
+              onClick={step < 3 ? next : submit}
+              className="group flex items-center justify-center gap-2 px-10 py-4 rounded-xl font-lato font-bold text-sm sm:text-base transition-all bg-[#F06138] text-[#FDFAD6] shadow-[0_8px_24px_rgba(240,97,56,0.3)] hover:shadow-[0_12px_32px_rgba(240,97,56,0.4)] hover:-translate-y-0.5"
+            >
+              {step < 3 ? (
+                <>Next Step <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" /></>
+              ) : (
+                <><Sparkles size={16} /> Finalize Plan</>
+              )}
+            </motion.button>
+          </div>
         </div>
       </div>
-
-      <Footer />
     </div>
   )
 }

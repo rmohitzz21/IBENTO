@@ -77,23 +77,40 @@ export default function Home() {
       <UserNavbar />
 
       {/* ── HERO ─────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden" style={{ background: 'linear-gradient(160deg, #1a0a00 0%, #3d1a0a 50%, #5a2010 100%)' }}>
-        {/* Decorative blobs */}
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full opacity-10 pointer-events-none" style={{ background: 'radial-gradient(circle, #F06138 0%, transparent 70%)', transform: 'translate(30%, -30%)' }} />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full opacity-8 pointer-events-none" style={{ background: 'radial-gradient(circle, #F06138 0%, transparent 70%)', transform: 'translate(-40%, 40%)' }} />
+      <section className="relative min-h-[540px] flex items-center bg-[#1a0a00] overflow-hidden">
+        {/* Background Image with Overlay */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=2070&q=80" 
+            alt="Premium Wedding Setup" 
+            className="w-full h-full object-cover object-center"
+          />
+          {/* Gradient Overlay for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#FFFDFC] via-transparent to-transparent opacity-20" />
+          <div className="absolute inset-0 bg-black/20" />
+        </div>
 
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-16 sm:py-24 relative z-10">
-          <motion.p
+        {/* Decorative blobs */}
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full opacity-30 pointer-events-none mix-blend-screen" style={{ background: 'radial-gradient(circle, #F06138 0%, transparent 70%)', transform: 'translate(30%, -30%)' }} />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full opacity-20 pointer-events-none mix-blend-screen" style={{ background: 'radial-gradient(circle, #F06138 0%, transparent 70%)', transform: 'translate(-40%, 40%)' }} />
+
+        <div className="max-w-[1280px] mx-auto w-full px-4 sm:px-6 py-16 sm:py-24 relative z-10">
+          <motion.div
             initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-            className="font-lato text-[#F06138] text-sm font-semibold tracking-wider uppercase mb-3"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-5"
+            style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)' }}
           >
-            Hello, {firstName} 👋
-          </motion.p>
+            <span className="flex w-2 h-2 rounded-full bg-[#F06138] animate-pulse" />
+            <span className="font-lato text-white/90 text-xs font-semibold tracking-wide">
+              Welcome back, {firstName}
+            </span>
+          </motion.div>
 
           <motion.h1
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-            className="font-filson font-black text-white leading-[1.08] mb-5"
-            style={{ fontSize: 'clamp(32px, 6vw, 64px)' }}
+            className="font-filson font-black text-white leading-[1.08] mb-5 max-w-2xl drop-shadow-md"
+            style={{ fontSize: 'clamp(36px, 6vw, 64px)' }}
           >
             Find the perfect<br />
             <span style={{ color: '#F06138' }}>vendors</span> for your<br />
@@ -102,28 +119,28 @@ export default function Home() {
 
           <motion.p
             initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-            className="font-lato text-white/60 text-base mb-8 max-w-lg"
+            className="font-lato text-white/80 text-base md:text-lg mb-8 max-w-lg font-medium drop-shadow-md"
           >
-            Discover top-rated photographers, decorators, caterers and more — all in {city}.
+            Discover top-rated photographers, decorators, caterers and more — all in <strong className="text-white">{city}</strong>.
           </motion.p>
 
           {/* Premium Search bar */}
           <motion.form
             initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
             onSubmit={handleSearch}
-            className="flex items-center max-w-xl rounded-3xl p-1.5 transition-all duration-300 focus-within:ring-2 focus-within:ring-white/40 glass"
-            style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}
+            className="flex items-center max-w-xl rounded-2xl p-1.5 transition-all duration-300 focus-within:ring-2 focus-within:ring-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.3)] backdrop-blur-md"
+            style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)' }}
           >
-            <div className="flex-1 flex items-center gap-3 px-5 py-3.5">
-              <Search size={20} className="text-white/80 shrink-0" />
+            <div className="flex-1 flex items-center gap-3 px-5 py-3">
+              <Search size={22} className="text-white/90 shrink-0" />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={`Search vendors in ${city}…`}
-                className="flex-1 bg-transparent font-lato text-base text-white placeholder-white/60 outline-none"
+                className="flex-1 bg-transparent font-lato text-base text-white placeholder-white/70 outline-none font-medium"
               />
             </div>
-            <button type="submit" className="px-7 py-3.5 rounded-2xl font-lato font-bold text-sm bg-white text-[#F06138] hover:bg-[#FDFAD6] shadow-[0_4px_12px_rgba(255,255,255,0.2)] hover:scale-105 transition-all shrink-0">
+            <button type="submit" className="px-8 py-3.5 rounded-xl font-lato font-bold text-sm bg-white text-[#F06138] hover:bg-[#FDFAD6] shadow-[0_4px_12px_rgba(255,255,255,0.3)] hover:scale-105 transition-all shrink-0">
               Search
             </button>
           </motion.form>
@@ -131,12 +148,12 @@ export default function Home() {
           {/* Trust badges */}
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
-            className="flex items-center flex-wrap gap-x-6 gap-y-2 mt-8"
+            className="flex items-center flex-wrap gap-x-6 gap-y-3 mt-10"
           >
             {['500+ verified vendors', 'Instant booking', '4.8★ avg. rating'].map((t) => (
-              <div key={t} className="flex items-center gap-1.5">
-                <CheckCircle size={13} className="text-[#F06138]" />
-                <span className="font-lato text-white/60 text-xs">{t}</span>
+              <div key={t} className="flex items-center gap-2 bg-black/20 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10">
+                <CheckCircle size={14} className="text-[#F06138]" />
+                <span className="font-lato text-white/90 font-medium text-xs">{t}</span>
               </div>
             ))}
           </motion.div>
@@ -194,11 +211,21 @@ export default function Home() {
           <motion.div
             whileHover={{ scale: 1.01, translateY: -2 }}
             whileTap={{ scale: 0.99 }}
-            className="relative overflow-hidden rounded-3xl px-6 py-5 flex items-center justify-between gap-4 cursor-pointer shadow-[0_8px_24px_rgba(139,67,50,0.2)] transition-shadow hover:shadow-[0_12px_32px_rgba(139,67,50,0.3)] border border-[#8B4332]/20"
-            style={{ background: 'linear-gradient(135deg, #F06138 0%, #8B4332 100%)' }}
+            className="relative overflow-hidden rounded-3xl px-6 py-5 flex items-center justify-between gap-4 cursor-pointer shadow-[0_8px_24px_rgba(139,67,50,0.2)] transition-shadow hover:shadow-[0_12px_32px_rgba(139,67,50,0.3)] border border-[#8B4332]/20 group"
           >
-            <div className="absolute right-0 top-0 w-48 h-48 rounded-full pointer-events-none opacity-10" style={{ background: 'radial-gradient(circle, white 0%, transparent 70%)', transform: 'translate(30%, -30%)' }} />
-            <div className="flex items-center gap-5">
+            {/* Background Image */}
+            <div className="absolute inset-0 z-0">
+              <img 
+                src="https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=2070&q=80"
+                alt="Offers Background"
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#bd3f1c]/95 via-[#F06138]/80 to-[#F06138]/40 mix-blend-multiply" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
+            </div>
+
+            <div className="absolute right-0 top-0 w-48 h-48 rounded-full pointer-events-none opacity-20 z-0" style={{ background: 'radial-gradient(circle, white 0%, transparent 70%)', transform: 'translate(30%, -30%)' }} />
+            <div className="flex items-center gap-5 relative z-10">
               <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center shrink-0 backdrop-blur-sm shadow-inner hidden sm:flex">
                 <BadgePercent size={24} className="text-white drop-shadow-sm" />
               </div>
@@ -421,9 +448,18 @@ export default function Home() {
         {/* ── AI PLANNER BANNER ────────────────────────────────── */}
         <section>
           <div
-            className="relative overflow-hidden rounded-3xl px-8 py-10 flex flex-col sm:flex-row items-center justify-between gap-6"
-            style={{ background: 'linear-gradient(135deg, #101828 0%, #1a2d40 100%)' }}
+            className="relative overflow-hidden rounded-3xl px-8 py-10 flex flex-col sm:flex-row items-center justify-between gap-6 group"
           >
+            {/* Background Image */}
+            <div className="absolute inset-0 z-0">
+              <img 
+                src="https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=2069&q=80"
+                alt="AI Planner Background"
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#0a101a]/95 via-[#101828]/80 to-[#101828]/40" />
+            </div>
+
             {/* Glow */}
             <div className="absolute right-0 top-1/2 -translate-y-1/2 w-64 h-64 rounded-full pointer-events-none opacity-20" style={{ background: 'radial-gradient(circle, #F06138 0%, transparent 70%)', transform: 'translate(30%, -50%)' }} />
 
@@ -441,7 +477,7 @@ export default function Home() {
             </div>
 
             <Link
-              to="/explore"
+              to="/create-event"
               className="relative z-10 shrink-0 flex items-center gap-2 px-8 py-4 rounded-2xl font-lato font-bold text-sm bg-white text-[#101828] hover:scale-105 shadow-[0_8px_24px_rgba(255,255,255,0.15)] transition-all"
             >
               <Sparkles size={16} className="text-[#F06138]" /> Start Planning

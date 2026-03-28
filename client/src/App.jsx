@@ -169,6 +169,14 @@ function AnimatedRoutes() {
           }
         />
         <Route
+          path="/create-event"
+          element={
+            <ProtectedRoute roles={['user']}>
+              <CreateEvent />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/vendor/:id"
           element={
             <ProtectedRoute roles={['user']}>
@@ -403,7 +411,6 @@ function AnimatedRoutes() {
         {/* ── Navbar link redirects (no dedicated page yet) ─── */}
         <Route path="/cart" element={<Navigate to="/wishlist" replace />} />
         <Route path="/services" element={<Navigate to="/explore" replace />} />
-        <Route path="/create-event" element={<Navigate to="/vendor/apply" replace />} />
         <Route path="/settings" element={<Navigate to="/profile" replace />} />
 
         {/* ── 404 fallback ────────────────────────────────────── */}

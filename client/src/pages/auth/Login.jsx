@@ -93,26 +93,72 @@ export default function Login() {
           alt=""
           className="absolute inset-0 w-full h-full object-cover"
         />
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(139,67,50,0.7) 0%, rgba(16,24,40,0.5) 100%)' }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(160deg, rgba(26,16,8,0.85) 0%, rgba(61,32,16,0.75) 50%, rgba(26,16,8,0.6) 100%)' }} />
+
+        {/* Floating glow */}
+        <div
+          className="absolute top-1/2 right-0 w-72 h-72 rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(240,97,56,0.25) 0%, transparent 70%)', transform: 'translate(30%, -50%)' }}
+        />
+
         <div className="relative z-10 flex flex-col h-full p-12">
-          <Link to="/" className="font-filson font-black text-white text-2xl" style={{ letterSpacing: '-0.04em' }}>
-            ibento
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2.5">
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, #F06138, #8A4432)' }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#FDFAD6" stroke="none">
+                <path d="M13 2L4.09 12.97A1 1 0 005 14.5h7v7.5a.5.5 0 00.92.27L21.91 11.03A1 1 0 0021 9.5h-7V2a.5.5 0 00-.92-.27L13 2z"/>
+              </svg>
+            </div>
+            <span className="font-filson font-black text-white text-2xl" style={{ letterSpacing: '-0.05em' }}>
+              ibento
+            </span>
           </Link>
+
           <div className="flex-1 flex flex-col justify-center">
-            <p className="font-filson font-black text-white text-4xl leading-tight mb-4">
+            <div
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold mb-6 w-fit"
+              style={{ background: 'rgba(240,97,56,0.2)', color: '#F06138', border: '1px solid rgba(240,97,56,0.3)' }}
+            >
+              India's #1 Event Marketplace
+            </div>
+            <p className="font-filson font-black text-white leading-tight mb-5" style={{ fontSize: 'clamp(28px, 3.5vw, 44px)' }}>
               Your celebrations,<br />
               <span style={{ color: '#FDFAD6' }}>perfectly planned.</span>
             </p>
-            <p className="font-lato text-white/70 text-base leading-relaxed max-w-sm">
+            <p className="font-lato text-white/60 text-base leading-relaxed max-w-sm">
               Connect with the best event vendors in your city and create memories that last a lifetime.
             </p>
+
+            {/* Stats row */}
+            <div className="flex items-center gap-6 mt-8">
+              {[['500+', 'Vendors'], ['10k+', 'Events'], ['4.8★', 'Rating']].map(([num, lbl]) => (
+                <div key={lbl}>
+                  <p className="font-filson font-black text-white text-xl">{num}</p>
+                  <p className="font-lato text-white/50 text-xs mt-0.5">{lbl}</p>
+                </div>
+              ))}
+            </div>
           </div>
+
           {/* Testimonial */}
-          <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.2)' }}>
-            <p className="font-lato text-white/90 text-sm italic leading-relaxed">
+          <div
+            className="rounded-2xl p-5"
+            style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)' }}
+          >
+            <div className="flex gap-0.5 mb-3">
+              {[...Array(5)].map((_, i) => (
+                <svg key={i} width="13" height="13" viewBox="0 0 24 24" fill="#F06138" stroke="none">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+              ))}
+            </div>
+            <p className="font-lato text-white/85 text-sm italic leading-relaxed">
               "iBento made planning our wedding so easy. Found the perfect decorator and caterer in one place!"
             </p>
-            <p className="font-lato font-semibold text-white/70 text-xs mt-3">— Priya & Rahul, Mumbai</p>
+            <p className="font-lato font-semibold text-white/55 text-xs mt-3">— Priya & Rahul, Mumbai</p>
           </div>
         </div>
       </div>
@@ -126,8 +172,16 @@ export default function Login() {
           className="w-full max-w-[420px]"
         >
           {/* Logo (mobile only) */}
-          <div className="lg:hidden text-center mb-8">
-            <Link to="/" className="font-filson font-black text-2xl" style={{ color: '#8A4432', letterSpacing: '-0.04em' }}>
+          <div className="lg:hidden flex items-center justify-center gap-2 mb-8">
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, #F06138, #8A4432)' }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#FDFAD6" stroke="none">
+                <path d="M13 2L4.09 12.97A1 1 0 005 14.5h7v7.5a.5.5 0 00.92.27L21.91 11.03A1 1 0 0021 9.5h-7V2a.5.5 0 00-.92-.27L13 2z"/>
+              </svg>
+            </div>
+            <Link to="/" className="font-filson font-black text-2xl" style={{ color: '#8A4432', letterSpacing: '-0.05em' }}>
               ibento
             </Link>
           </div>

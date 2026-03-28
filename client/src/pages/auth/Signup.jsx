@@ -50,17 +50,36 @@ export default function Signup() {
           alt=""
           className="absolute inset-0 w-full h-full object-cover"
         />
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(240,97,56,0.75) 0%, rgba(139,67,50,0.6) 100%)' }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(160deg, rgba(26,16,8,0.88) 0%, rgba(61,32,16,0.75) 50%, rgba(26,16,8,0.65) 100%)' }} />
+        <div
+          className="absolute bottom-1/4 left-0 w-64 h-64 rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(240,97,56,0.2) 0%, transparent 70%)', transform: 'translate(-30%, 0)' }}
+        />
         <div className="relative z-10 flex flex-col h-full p-12">
-          <Link to="/" className="font-filson font-black text-white text-2xl" style={{ letterSpacing: '-0.04em' }}>
-            ibento
+          <Link to="/" className="flex items-center gap-2.5">
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, #F06138, #8A4432)' }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#FDFAD6" stroke="none">
+                <path d="M13 2L4.09 12.97A1 1 0 005 14.5h7v7.5a.5.5 0 00.92.27L21.91 11.03A1 1 0 0021 9.5h-7V2a.5.5 0 00-.92-.27L13 2z"/>
+              </svg>
+            </div>
+            <span className="font-filson font-black text-white text-2xl" style={{ letterSpacing: '-0.05em' }}>ibento</span>
           </Link>
+
           <div className="flex-1 flex flex-col justify-center">
-            <p className="font-filson font-black text-white text-4xl leading-tight mb-4">
+            <div
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold mb-6 w-fit"
+              style={{ background: 'rgba(240,97,56,0.2)', color: '#F06138', border: '1px solid rgba(240,97,56,0.3)' }}
+            >
+              Join 10,000+ event planners
+            </div>
+            <p className="font-filson font-black text-white leading-tight mb-5" style={{ fontSize: 'clamp(28px, 3.5vw, 42px)' }}>
               Plan unforgettable<br />
               <span style={{ color: '#FDFAD6' }}>events with ease.</span>
             </p>
-            <p className="font-lato text-white/75 text-base leading-relaxed max-w-sm mb-8">
+            <p className="font-lato text-white/60 text-base leading-relaxed max-w-sm mb-8">
               Join thousands of customers and vendors creating extraordinary experiences across India.
             </p>
             {/* Stats */}
@@ -70,9 +89,13 @@ export default function Signup() {
                 { value: '15K+',  label: 'Events' },
                 { value: '4.9★',  label: 'Rating' },
               ].map((s) => (
-                <div key={s.label} className="rounded-xl p-4 text-center" style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)' }}>
+                <div
+                  key={s.label}
+                  className="rounded-xl p-4 text-center"
+                  style={{ background: 'rgba(255,255,255,0.07)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.1)' }}
+                >
                   <p className="font-filson font-black text-white text-xl">{s.value}</p>
-                  <p className="font-lato text-white/70 text-xs mt-0.5">{s.label}</p>
+                  <p className="font-lato text-white/50 text-xs mt-0.5">{s.label}</p>
                 </div>
               ))}
             </div>
@@ -89,8 +112,16 @@ export default function Signup() {
           className="w-full max-w-[420px]"
         >
           {/* Mobile logo */}
-          <div className="lg:hidden text-center mb-8">
-            <Link to="/" className="font-filson font-black text-2xl" style={{ color: '#8A4432', letterSpacing: '-0.04em' }}>
+          <div className="lg:hidden flex items-center justify-center gap-2 mb-8">
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, #F06138, #8A4432)' }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#FDFAD6" stroke="none">
+                <path d="M13 2L4.09 12.97A1 1 0 005 14.5h7v7.5a.5.5 0 00.92.27L21.91 11.03A1 1 0 0021 9.5h-7V2a.5.5 0 00-.92-.27L13 2z"/>
+              </svg>
+            </div>
+            <Link to="/" className="font-filson font-black text-2xl" style={{ color: '#8A4432', letterSpacing: '-0.05em' }}>
               ibento
             </Link>
           </div>
